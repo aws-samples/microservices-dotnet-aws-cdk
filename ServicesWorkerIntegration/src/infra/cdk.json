@@ -1,0 +1,6 @@
+{
+  "app": "dotnet run --project src/Infra/Infra.csproj",
+  "context": {
+    
+  }
+}

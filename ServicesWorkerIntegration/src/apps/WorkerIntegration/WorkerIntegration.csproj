@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>dotnet-WorkerIntegration-16DA5987-F46F-4341-A563-D76723C9EC3C</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="3.7.3.20" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.3.27" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.1.30" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.1.77" />
+  </ItemGroup>
+</Project>
