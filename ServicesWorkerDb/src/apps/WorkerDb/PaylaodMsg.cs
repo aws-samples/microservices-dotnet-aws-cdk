@@ -1,6 +1,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 public class PaylaodMsg
 {
@@ -13,4 +14,11 @@ public class PaylaodMsg
     public string Signature { get; set; }
     public string SigningCertURL { get; set; }
     public string UnsubscribeURL { get; set; }
+    public Dictionary<string, PaylaodMsg.MessageAttributeValue> MessageAttributes { get; set; }
+
+    public class MessageAttributeValue
+    {
+        public string Type { get; set; }
+        public string Value { get; set; }
+    }
 }

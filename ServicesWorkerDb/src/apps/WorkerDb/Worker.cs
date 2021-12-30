@@ -1,47 +1,60 @@
+using System.Collections.Generic;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Amazon;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2;
 using System.Text.Json;
+using Amazon.XRay.Recorder.Core;
+using Amazon.XRay.Recorder.Core.Internal.Entities;
+using Amazon.XRay.Recorder.Core.Sampling;
 
 namespace WorkerDb
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private string _region;
-        private IAmazonSQS _client;
+        private IAmazonSQS _sqsClient;
+        private IAmazonDynamoDB _dynamoDbClient;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IAmazonSQS sqsClient, IAmazonDynamoDB dynamoDbClient)
         {
-            _region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.USWest2.SystemName;
             _logger = logger;
-            _client = new AmazonSQSClient(RegionEndpoint.GetBySystemName(_region));
+            _sqsClient = sqsClient;
+            _dynamoDbClient = dynamoDbClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var queueUrl = Environment.GetEnvironmentVariable("WORKER_QUEUE_URL"); 
+            var queueUrl = Environment.GetEnvironmentVariable("WORKER_QUEUE_URL");
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                AWSXRayRecorder.Instance.BeginSegment("worker-db");
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation("The SQS queue's URL is {queueUrl}", queueUrl);
 
-                _logger.LogInformation($"The SQS queue's URL is {queueUrl}");
                 try
                 {
-                    var response = await ReceiveAndDeleteMessage(_client, queueUrl);
-                    _logger.LogInformation($"Message: ", response);
+                    var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
+                    _logger.LogInformation("Message ID: {messageId}", messageId);
                 }
                 catch (System.Exception ex)
                 {
-                    _logger.LogError(ex, "error consuming msg");
+                    _logger.LogError(ex, "error consuming SQS Queue");
+                    AWSXRayRecorder.Instance.AddException(ex);
+                }
+                finally
+                {
+                    var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
+                    AWSXRayRecorder.Instance.EndSegment();
+                    AWSXRayRecorder.Instance.Emitter.Send(traceEntity);
+                    _logger.LogInformation($"Trace sent {traceEntity.TraceId}");
                 }
 
                 await Task.Delay(1000 * 5, stoppingToken);
@@ -49,58 +62,71 @@ namespace WorkerDb
         }
 
         /// <summary>
-        /// Retrieves the message from the quque at the URL passed in the
-        /// queueURL parameters using the client.
+        /// Retrieves the message from the SQS queue preserve 
+        /// the propagated Trace Id from SNS 
+        /// and persisted the Book into DynamoDB
         /// </summary>
         /// <param name="client">The SQS client used to retrieve a message.</param>
         /// <param name="queueUrl">The URL of the queue from which to retrieve
         /// a message.</param>
-        /// <returns></returns>
-        public async Task<ReceiveMessageResponse> ReceiveAndDeleteMessage(IAmazonSQS client, string queueUrl)
+        /// <returns>MessageIds processed</returns>
+        public async Task<string[]> ReceiveAndDeleteMessage(IAmazonSQS client, string queueUrl)
         {
             // Receive a single message from the queue. 
             var receiveMessageRequest = new ReceiveMessageRequest
             {
-                AttributeNames = { "SentTimestamp" },
+                AttributeNames = { "All" },
                 MaxNumberOfMessages = 1,
                 MessageAttributeNames = { "All" },
                 QueueUrl = queueUrl,
                 VisibilityTimeout = 120,
-                WaitTimeSeconds = 0
+                WaitTimeSeconds = 20
             };
 
-            var receiveMessageResponse = await client.ReceiveMessageAsync(receiveMessageRequest);
+            var receivedMessageResponse = await client.ReceiveMessageAsync(receiveMessageRequest);
 
-            foreach (var item in receiveMessageResponse.Messages)
+            foreach (var msgItem in receivedMessageResponse.Messages)
             {
-                _logger.LogInformation("SQS Messages received:", item);
-                await PerformCRUDOperations(item);
+                var sqsMsg = JsonSerializer.Deserialize<PaylaodMsg>(msgItem.Body);
+                var book = JsonSerializer.Deserialize<Book>(sqsMsg.Message);
+
+                //Create Segment with Propagated TraceId
+                var tracerAtt = msgItem.Attributes.GetValueOrDefault("AWSTraceHeader");
+                TraceHeader traceInfo = TraceHeader.FromString(tracerAtt);
+                AWSXRayRecorder.Instance.BeginSegment("worker-db", traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
+
+                await PerformCRUDOperations(book);
 
                 // Delete the received message from the queue.
-                var deleteMessageRequest = new DeleteMessageRequest
+                await client.DeleteMessageAsync(new DeleteMessageRequest
                 {
                     QueueUrl = queueUrl,
-                    ReceiptHandle = item.ReceiptHandle
-                };
+                    ReceiptHandle = msgItem.ReceiptHandle
+                });
 
-                await client.DeleteMessageAsync(deleteMessageRequest);
+                //Close/Submmit Segment with Propagated TraceId
+                var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
+                AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
+                AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
+
+                //Log some informations for traceability
+                _logger.LogInformation($"SQS Messages received id:{msgItem.MessageId} recived TraceId: {propagatedSegment.TraceId}");
+                _logger.LogInformation($"Book saved id:{book.Id} recived TraceId: {propagatedSegment.TraceId}");
+                _logger.LogInformation($"SQS Message Attributes {JsonSerializer.Serialize(msgItem.Attributes)}");
             }
 
-            return receiveMessageResponse;
+            return receivedMessageResponse?.Messages?.Select(s => s.MessageId).ToArray();
         }
 
-        public async Task PerformCRUDOperations(Amazon.SQS.Model.Message message)
+        /// <summary>
+        /// Performe Inser or Update book 
+        /// </summary>
+        /// <param name="book"></param>
+        /// <returns></returns>
+        public async Task PerformCRUDOperations(Book book)
         {
-            var client = new AmazonDynamoDBClient();
-            DynamoDBContext context = new DynamoDBContext(client);
-
-            var snsMsg = JsonSerializer.Deserialize<PaylaodMsg>(message.Body);
-            Book myBook = JsonSerializer.Deserialize<Book>(snsMsg.Message);
-
-            await context.SaveAsync(myBook);
-
-
-            _logger.LogInformation("Book Saved:", myBook);
+            DynamoDBContext context = new DynamoDBContext(_dynamoDbClient);
+            await context.SaveAsync(book);
         }
     }
 }
