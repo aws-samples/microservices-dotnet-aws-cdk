@@ -1,10 +1,3 @@
-using System;
-using Amazon;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Amazon.SimpleNotificationService;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
@@ -30,11 +23,13 @@ namespace SampleWebApp
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SampleWebApp Live", Version = "v1" });
             });
 
+
             //Register X-Ray
             AWSSDKHandler.RegisterXRayForAllServices();
-            //Register Singleton SNS Client
-            string region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.USWest2.SystemName;
-            services.AddSingleton<IAmazonSimpleNotificationService>(new AmazonSimpleNotificationServiceClient(region: RegionEndpoint.GetBySystemName(region)) );
+            
+            //Register Services
+            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+            services.AddAWSService<IAmazonSimpleNotificationService>();
 
         }
 
@@ -56,6 +51,10 @@ namespace SampleWebApp
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync("Demo .NET Microservices v2");
+                });
             });
         }
     }
