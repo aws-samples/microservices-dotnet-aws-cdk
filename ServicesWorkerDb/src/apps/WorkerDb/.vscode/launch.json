@@ -10,14 +10,14 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net5.0/WorkerDb.dll",
+            "program": "${workspaceFolder}/bin/Debug/net6.0/WorkerDb.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false,
             "env": {
-                "WORKER_QUEUE_URL" : "PUT_YOUR_SQS_URL_HERE_FOR_DEBUG"
+                "WORKER_QUEUE_URL" : "https://sqs.us-west-2.amazonaws.com/651749949152/worker-db-queue"
             }
         },
         {

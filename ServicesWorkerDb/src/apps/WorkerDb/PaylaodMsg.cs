@@ -1,8 +1,3 @@
-
-
-using System;
-using System.Collections.Generic;
-
 public class PaylaodMsg
 {
     public string Type { get; set; }
