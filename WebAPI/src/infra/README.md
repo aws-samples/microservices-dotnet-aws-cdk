@@ -12,3 +12,8 @@ It uses the [.NET Core CLI](https://docs.microsoft.com/dotnet/articles/core/) to
 * `cdk deploy`       deploy this stack to your default AWS account/region
 * `cdk diff`         compare deployed stack with current state
 * `cdk synth`        emits the synthesized CloudFormation template
+
+
+```bash
+export DEMO_VPC_ID=$(aws cloudformation describe-stacks --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]')
+```

@@ -26,6 +26,7 @@ namespace Infra
             var cluster = new Cluster(this, "demo-cluster", new ClusterProps
             {
                 Vpc = vpc,
+                ContainerInsights = true,
             });
 
             //ECR
@@ -84,6 +85,7 @@ namespace Infra
                 .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
 
             new CfnOutput(this, "DemoSnsTopicArn", new CfnOutputProps { Value = topic.TopicArn, ExportName = "DemoSnsTopicArn" });
+            new CfnOutput(this, "DemoClusterName", new CfnOutputProps { Value = cluster.ClusterName, ExportName = "DemoClusterName" });
             new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
             
         }
