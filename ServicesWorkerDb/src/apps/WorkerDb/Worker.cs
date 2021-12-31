@@ -11,6 +11,7 @@ namespace WorkerDb;
 
 public class Worker : BackgroundService
 {
+    private const string XRAY_SERVICE_NAME = "worker-db";
     private readonly ILogger<Worker> _logger;
     private readonly IAmazonSQS _sqsClient;
     private readonly IAmazonDynamoDB _dynamoDbClient;
@@ -28,7 +29,7 @@ public class Worker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            AWSXRayRecorder.Instance.BeginSegment("worker-db");
+            AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME);
             _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
             _logger.LogInformation("The SQS queue's URL is {queueUrl}", queueUrl);
 
@@ -86,7 +87,7 @@ public class Worker : BackgroundService
             //Create Segment with Propagated TraceId
             var tracerAtt = msgItem.Attributes.GetValueOrDefault("AWSTraceHeader");
             TraceHeader traceInfo = TraceHeader.FromString(tracerAtt);
-            AWSXRayRecorder.Instance.BeginSegment("worker-db", traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
+            AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME, traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
 
             await PerformCRUDOperations(book);
 

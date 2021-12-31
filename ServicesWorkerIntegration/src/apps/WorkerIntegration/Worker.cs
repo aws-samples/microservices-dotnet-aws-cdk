@@ -122,7 +122,6 @@ public class Worker : BackgroundService
 
         PutObjectResponse response1 = await _s3Client.PutObjectAsync(putRequest1);
 
-
         var putRequest2 = new PutObjectRequest
         {
             BucketName = Environment.GetEnvironmentVariable("WORKER_BUCKET_NAME"),
