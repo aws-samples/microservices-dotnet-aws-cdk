@@ -1,7 +1,3 @@
-
-
-using System;
-
 public class PaylaodMsg
 {
     public string Type { get; set; }
