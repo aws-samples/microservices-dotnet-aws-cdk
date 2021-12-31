@@ -15,5 +15,5 @@ It uses the [.NET Core CLI](https://docs.microsoft.com/dotnet/articles/core/) to
 
 
 ```bash
-export DEMO_VPC_ID=$(aws cloudformation describe-stacks --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]')
+export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]')
 ```

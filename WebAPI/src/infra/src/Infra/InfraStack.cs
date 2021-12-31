@@ -6,6 +6,7 @@ using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Constructs;
 
@@ -16,6 +17,9 @@ namespace Infra
         internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             const string XRAY_DEAMON = "xray-daemon";
+            //Note: For demo' cleanup propose, this Sample Code will set RemovalPolicy == DESTROY
+            //this will clean all resources when you cdk destroy
+            var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
             // VPC
             var vpc = new Vpc(this, "demo-vpc", new VpcProps
             {
@@ -44,6 +48,19 @@ namespace Infra
                 TopicName = "demo-web-app-topic"
             });
 
+            //CloudWatch LogGroup and ECS LogDriver
+            var logGroupName = "/ecs/demo/ecs-fargate-dotnet-microservices";
+            var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
+            {
+                LogGroup = new LogGroup(this, "demo-log-group", new LogGroupProps
+                {
+                    LogGroupName = logGroupName,
+                    Retention = RetentionDays.ONE_DAY,
+                    RemovalPolicy = cleanUpRemovePolicy
+                }),
+                StreamPrefix = "ecs"
+            });
+
             var albFargateSvc = new ApplicationLoadBalancedFargateService(this, "demo-service", new ApplicationLoadBalancedFargateServiceProps
             {
                 Cluster = cluster,
@@ -57,13 +74,12 @@ namespace Infra
                     Environment = new Dictionary<string, string>()
                         {
                             {"SNS_TOPIC_ARN", topic.TopicArn },
-                            {"AWS_REGION", this.Region},
-                            {"ASPNETCORE_ENVIRONMENT","Development"},
                             {"ASPNETCORE_URLS","http://+:80"},
                             // {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" }
-                        }
+                        },
+                    LogDriver = logDriver
                 },
-            });  
+            });
 
             albFargateSvc.Service.TaskDefinition
                 .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
@@ -77,6 +93,7 @@ namespace Infra
                         Protocol = Amazon.CDK.AWS.ECS.Protocol.UDP
                     }},
                     Image = ContainerImage.FromRegistry("public.ecr.aws/xray/aws-xray-daemon:latest"),
+                    Logging = logDriver
                 });
 
             topic.GrantPublish(albFargateSvc.Service.TaskDefinition.TaskRole);
@@ -86,8 +103,9 @@ namespace Infra
 
             new CfnOutput(this, "DemoSnsTopicArn", new CfnOutputProps { Value = topic.TopicArn, ExportName = "DemoSnsTopicArn" });
             new CfnOutput(this, "DemoClusterName", new CfnOutputProps { Value = cluster.ClusterName, ExportName = "DemoClusterName" });
+            new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
             new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
-            
+
         }
     }
 }

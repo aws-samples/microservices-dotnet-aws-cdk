@@ -28,6 +28,7 @@ namespace Infra
             //Import Resources
             var importedSnsArn = Fn.ImportValue("DemoSnsTopicArn");
             var importedClusterName = Fn.ImportValue("DemoClusterName");
+            var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
             var importedVpcId = System.Environment.GetEnvironmentVariable("DEMO_VPC_ID");
 
             var vpc = Vpc.FromLookup(this, "imported-vpc", new VpcLookupOptions
@@ -75,15 +76,9 @@ namespace Infra
                 File = "Dockerfile",
             });
 
-            //CloudWatch LogGroup and ECS LogDriver
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {
-                LogGroup = new LogGroup(this, "demo-log-group", new LogGroupProps
-                {
-                    LogGroupName = "/ecs/worker-db/ecs-fargate-cwagent",
-                    Retention = RetentionDays.ONE_DAY,
-                    RemovalPolicy = cleanUpRemovePolicy
-                }),
+                LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
                 StreamPrefix = "ecs"
             });
 

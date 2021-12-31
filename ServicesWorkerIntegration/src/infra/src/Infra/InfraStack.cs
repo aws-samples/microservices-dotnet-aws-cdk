@@ -5,6 +5,8 @@ using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
+using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
@@ -17,16 +19,27 @@ namespace Infra
     {
         internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
+            const string XRAY_DEAMON = "xray-daemon";
             //Note: For demo' cleanup propose, this Sample Code will set RemovalPolicy == DESTROY
+            //this will clean all resources when you cdk destroy
             var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
 
             //Import Resources
             var importedSnsArn = Fn.ImportValue("DemoSnsTopicArn");
-            var importedVpcId = "YOUR_VPC_ID"; //Fn.ImportValue("DemoVpcId");
+            var importedClusterName = Fn.ImportValue("DemoClusterName");
+            var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
+            var importedVpcId = System.Environment.GetEnvironmentVariable("DEMO_VPC_ID");
 
             var vpc = Vpc.FromLookup(this, "imported-vpc", new VpcLookupOptions
             {
                 VpcId = importedVpcId
+            });
+
+            var cluster = Cluster.FromClusterAttributes(this, "imported-cluester", new ClusterAttributes
+            {
+                Vpc = vpc,
+                ClusterName = importedClusterName,
+                SecurityGroups = new SecurityGroup[] { }
             });
 
             var topic = Topic.FromTopicArn(this, "imported-topic", importedSnsArn);
@@ -51,11 +64,16 @@ namespace Infra
                 AutoDeleteObjects = true //Set to false for Real Env, this is only set for demo cleanup propose
             });
 
-        
             var asset = new DockerImageAsset(this, "worker-integration-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerIntegration"),
                 File = "Dockerfile",
+            });
+
+            var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
+            {
+                LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
+                StreamPrefix = "ecs"
             });
 
             var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services", new QueueProcessingFargateServiceProps
@@ -63,20 +81,39 @@ namespace Infra
                 Queue = workerIntegrationQueue,
                 Cpu = 256,
                 MemoryLimitMiB = 512,
-                Vpc = vpc,
+                Cluster = cluster,
                 Image = ContainerImage.FromDockerImageAsset(asset),
                 Environment = new Dictionary<string, string>()
                         {
                             {"WORKER_QUEUE_URL", workerIntegrationQueue.QueueUrl },
                             {"WORKER_BUCKET_NAME", bucket.BucketName},
-                            {"AWS_REGION", this.Region},
-                            {"ASPNETCORE_ENVIRONMENT","Development"}
-                        }
+                            {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" }
+                        },
+                LogDriver = logDriver
             });
 
             bucket.GrantWrite(queueFargateSvc.TaskDefinition.TaskRole);
-            
+
             workerIntegrationQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
+
+            //Add X-Ray Deamon 
+            queueFargateSvc.Service.TaskDefinition
+                .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
+                {
+                    ContainerName = XRAY_DEAMON,
+                    Cpu = 32,
+                    MemoryLimitMiB = 256,
+                    PortMappings = new PortMapping[]{
+                    new PortMapping{
+                        ContainerPort = 2000,
+                        Protocol = Amazon.CDK.AWS.ECS.Protocol.UDP
+                    }},
+                    Image = ContainerImage.FromRegistry("public.ecr.aws/xray/aws-xray-daemon:latest"),
+                    Logging = logDriver
+                });
+
+            queueFargateSvc.Service.TaskDefinition.TaskRole
+                .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
 
         }
     }
