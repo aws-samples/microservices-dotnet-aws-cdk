@@ -4,19 +4,23 @@ using Amazon.SQS.Model;
 using System.Text.Json;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.XRay.Recorder.Core;
+using Amazon.XRay.Recorder.Core.Internal.Entities;
+using Amazon.XRay.Recorder.Core.Sampling;
 
 namespace WorkerIntegration;
 public class Worker : BackgroundService
 {
+    private const string XRAY_SERVICE_NAME = "worker-integration";
     private readonly ILogger<Worker> _logger;
-    private string _region;
-    private IAmazonSQS _client;
+    private readonly IAmazonSQS _sqsClient;
+    private readonly IAmazonS3 _s3Client;
 
-    public Worker(ILogger<Worker> logger)
+    public Worker(ILogger<Worker> logger, IAmazonSQS sqsClient, IAmazonS3 s3Client)
     {
-        _region = Environment.GetEnvironmentVariable("AWS_REGION") ?? RegionEndpoint.USWest2.SystemName;
         _logger = logger;
-        _client = new AmazonSQSClient(RegionEndpoint.GetBySystemName(_region));
+        _sqsClient = sqsClient;
+        _s3Client = s3Client;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,17 +29,26 @@ public class Worker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME);
             _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            _logger.LogInformation("The SQS queue's URL is {queueUrl}", queueUrl);
 
-            _logger.LogInformation($"The SQS queue's URL is {queueUrl}");
             try
             {
-                var response = await ReceiveAndDeleteMessage(_client, queueUrl);
-                _logger.LogInformation($"Message: ", response);
+                var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
+                _logger.LogInformation("Message ID: {messageId}", messageId);
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, "error consuming msg");
+                _logger.LogError(ex, "error consuming SQS Queue");
+                AWSXRayRecorder.Instance.AddException(ex);
+            }
+            finally
+            {
+                var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
+                AWSXRayRecorder.Instance.EndSegment();
+                AWSXRayRecorder.Instance.Emitter.Send(traceEntity);
+                _logger.LogInformation($"Trace sent {traceEntity.TraceId}");
             }
 
             await Task.Delay(1000 * 5, stoppingToken);
@@ -43,50 +56,60 @@ public class Worker : BackgroundService
     }
 
     /// <summary>
-    /// Retrieves the message from the quque at the URL passed in the
-    /// queueURL parameters using the client.
+    /// Retrieves the message from the SQS queue preserve 
+    /// the propagated Trace Id from SNS 
+    /// and persisted the Book into DynamoDB
     /// </summary>
     /// <param name="client">The SQS client used to retrieve a message.</param>
     /// <param name="queueUrl">The URL of the queue from which to retrieve
     /// a message.</param>
-    /// <returns></returns>
-    public async Task<ReceiveMessageResponse> ReceiveAndDeleteMessage(IAmazonSQS client, string queueUrl)
+    /// <returns>MessageIds processed</returns>
+    public async Task<string[]> ReceiveAndDeleteMessage(IAmazonSQS client, string queueUrl)
     {
-        // Receive a single message from the queue.
+        // Receive a single message from the queue. 
         var receiveMessageRequest = new ReceiveMessageRequest
         {
-            AttributeNames = { "SentTimestamp" },
-            MaxNumberOfMessages = 10,
+            AttributeNames = { "All" },
+            MaxNumberOfMessages = 1,
             MessageAttributeNames = { "All" },
             QueueUrl = queueUrl,
             VisibilityTimeout = 120,
-            WaitTimeSeconds = 0
+            WaitTimeSeconds = 20
         };
 
-        var receiveMessageResponse = await client.ReceiveMessageAsync(receiveMessageRequest);
+        var receivedMessageResponse = await client.ReceiveMessageAsync(receiveMessageRequest);
 
-        foreach (var item in receiveMessageResponse.Messages)
+        foreach (var msgItem in receivedMessageResponse.Messages)
         {
-            _logger.LogInformation("SQS Messages received:", item);
-            await PerformCRUDOperations(item);
+            //Create Segment with Propagated TraceId
+            var tracerAtt = msgItem.Attributes.GetValueOrDefault("AWSTraceHeader");
+            TraceHeader traceInfo = TraceHeader.FromString(tracerAtt);
+            AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME, traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
+
+            await PerformCRUDOperations(msgItem);
 
             // Delete the received message from the queue.
-            var deleteMessageRequest = new DeleteMessageRequest
+            await client.DeleteMessageAsync(new DeleteMessageRequest
             {
                 QueueUrl = queueUrl,
-                ReceiptHandle = item.ReceiptHandle
-            };
+                ReceiptHandle = msgItem.ReceiptHandle
+            });
 
-            await client.DeleteMessageAsync(deleteMessageRequest);
+            //Close/Submmit Segment with Propagated TraceId
+            var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
+            AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
+            AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
+
+            //Log some informations for traceability
+            _logger.LogInformation($"SQS Messages received id:{msgItem.MessageId} recived TraceId: {propagatedSegment.TraceId}");
+            _logger.LogInformation($"SQS Message Attributes {JsonSerializer.Serialize(msgItem.Attributes)}");
         }
 
-        return receiveMessageResponse;
+        return receivedMessageResponse?.Messages?.Select(s => s.MessageId).ToArray();
     }
 
     public async Task PerformCRUDOperations(Amazon.SQS.Model.Message message)
     {
-        var client = new AmazonS3Client(region: RegionEndpoint.GetBySystemName(_region));
-
         var snsMsg = JsonSerializer.Deserialize<PaylaodMsg>(message.Body);
         Book myBook = JsonSerializer.Deserialize<Book>(snsMsg.Message);
 
@@ -97,7 +120,7 @@ public class Worker : BackgroundService
             ContentBody = snsMsg.Message
         };
 
-        PutObjectResponse response1 = await client.PutObjectAsync(putRequest1);
+        PutObjectResponse response1 = await _s3Client.PutObjectAsync(putRequest1);
 
 
         var putRequest2 = new PutObjectRequest
@@ -107,9 +130,8 @@ public class Worker : BackgroundService
             ContentBody = message.Body
         };
 
-        PutObjectResponse response2 = await client.PutObjectAsync(putRequest2);
+        PutObjectResponse response2 = await _s3Client.PutObjectAsync(putRequest2);
 
-        _logger.LogInformation("Messages added to S3 Bucket", response1);
-        _logger.LogInformation("Messages added to S3 Bucket", response2);
+        _logger.LogInformation($"Messages saved on S3 Bucket {putRequest1.Key} metadata seved on {putRequest2.Key} SQS Attr {JsonSerializer.Serialize(message.Attributes)}");
     }
 }
