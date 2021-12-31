@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net5.0/SampleWebApp.dll",
+            "program": "${workspaceFolder}/bin/Debug/net6.0/SampleWebApp.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
@@ -20,7 +20,8 @@
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "SNS_TOPIC_ARN":"arn:aws:sns:us-west-2:651749949152:demo-web-app-topic"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
