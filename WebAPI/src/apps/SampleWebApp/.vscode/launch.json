@@ -21,7 +21,7 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "SNS_TOPIC_ARN":"arn:aws:sns:us-west-2:651749949152:demo-web-app-topic"
+                "SNS_TOPIC_ARN":"ADD_YOUR_SNS_TOPIC_ARN_HERE_FOR_DEBUG"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
