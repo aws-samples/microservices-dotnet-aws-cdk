@@ -1,30 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Amazon.S3;
+using Amazon.SQS;
+using Amazon.XRay.Recorder.Core;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
+using WorkerIntegration;
 
-namespace WorkerIntegration
-{
-    public class Program
+IHost host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((hostContext, services) =>
     {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+        //Register X-Ray
+        AWSXRayRecorder.InitializeInstance(hostContext.Configuration);
+        AWSSDKHandler.RegisterXRayForAllServices();
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .ConfigureLogging(logging =>
-                {
-                    logging.ClearProviders();
-                    logging.AddConsole();
-                })
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<Worker>();
-                });
-    }
-}
+        //Register Services
+        services.AddDefaultAWSOptions(hostContext.Configuration.GetAWSOptions());
+        services.AddAWSService<IAmazonS3>();
+        services.AddAWSService<IAmazonSQS>();
+
+        services.AddHostedService<Worker>();
+    })
+    .Build();
+
+await host.RunAsync();
