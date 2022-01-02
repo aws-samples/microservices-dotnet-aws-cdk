@@ -1,8 +1,12 @@
 using Amazon.SimpleNotificationService;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Microsoft.OpenApi.Models;
+using SampleWebApp.AppLogger;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddConsole(options => options.FormatterName = nameof(XrayCustomFormatter))
+                .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>();
 
 // Add services to the container.
 

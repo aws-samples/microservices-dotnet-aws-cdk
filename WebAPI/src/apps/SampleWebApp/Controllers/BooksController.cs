@@ -4,6 +4,7 @@ using SampleWebApp.Entities;
 using Amazon.SimpleNotificationService;
 using System.Text.Json;
 using Amazon.SimpleNotificationService.Model;
+using Amazon.XRay.Recorder.Core;
 
 namespace SampleWebApp.Controllers;
 [ApiController]
@@ -23,6 +24,7 @@ public class BooksController : ControllerBase
     [HttpPost]
     public async Task<string> Post([FromBody] Book book)
     {
+        _logger.LogInformation("Teste Custom log");
         if (book == null)
         {
             throw new ArgumentException("Invalid input!");
@@ -38,7 +40,7 @@ public class BooksController : ControllerBase
 
         _logger.LogInformation($"Message id: {result.MessageId}");
         _logger.LogInformation($"Book {book.Id} is added");
-        return $"Message id: {result.MessageId}";
+        return $"TraceId: {AWSXRayRecorder.Instance?.GetEntity()?.TraceId}";
     }
 
 }
