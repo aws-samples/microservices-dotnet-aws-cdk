@@ -25,17 +25,19 @@ namespace Infra
             //this will clean all resources when you cdk destroy
             var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
 
-            //Import Resources
+            //Import Resources from other Stack and Local env
             var importedSnsArn = Fn.ImportValue("DemoSnsTopicArn");
             var importedClusterName = Fn.ImportValue("DemoClusterName");
             var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
             var importedVpcId = System.Environment.GetEnvironmentVariable("DEMO_VPC_ID");
 
+            //Import VPC using the value from env variable DEMO_VPC_ID
             var vpc = Vpc.FromLookup(this, "imported-vpc", new VpcLookupOptions
             {
                 VpcId = importedVpcId
             });
 
+            //Import ECS Cluster using VPC and the imported ClusterName
             var cluster = Cluster.FromClusterAttributes(this, "imported-cluester", new ClusterAttributes
             {
                 Vpc = vpc,
@@ -43,19 +45,20 @@ namespace Infra
                 SecurityGroups = new SecurityGroup[] { }
             });
 
+            //Import SNS Topic created from other Stack
             var topic = Topic.FromTopicArn(this, "imported-topic", importedSnsArn);
 
-            //SQS for Worker APP that persist data on s3
+            //Create SQS for Worker APP that persist data on DynamoDb
             var workerDbQueue = new Queue(this, "worker-db-queue", new QueueProps
             {
                 QueueName = "worker-db-queue",
                 RemovalPolicy = cleanUpRemovePolicy
             });
 
-            //Grant Permission & Subscribe
+            //Grant Permission & Subscribe SNS Topic
             topic.AddSubscription(new SqsSubscription(workerDbQueue));
 
-            //DynamoDb Table
+            //Create DynamoDb Table
             Table table = new Table(this, "Table", new TableProps
             {
                 RemovalPolicy = cleanUpRemovePolicy,
@@ -75,13 +78,15 @@ namespace Infra
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerDb"),
                 File = "Dockerfile",
             });
-
+            
+            //Create logDrive to reuse the same AWS CloudWatch Log group created from the other Stack
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {
                 LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
                 StreamPrefix = "ecs"
             });
 
+            //Level 3 Construct for SQS Queue processing
             var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services-db", new QueueProcessingFargateServiceProps
             {
                 Cluster = cluster,
@@ -99,10 +104,14 @@ namespace Infra
                 LogDriver = logDriver
             });
 
+            //Grant permission to DynamoDB table and SQS to consume message from the Queue
             table.GrantWriteData(queueFargateSvc.TaskDefinition.TaskRole);
             table.Grant(queueFargateSvc.TaskDefinition.TaskRole, "dynamodb:DescribeTable");
             workerDbQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
 
+            //Sidecar container with X-Ray deamon to 
+            //gathers raw segment data, and relays it to the AWS X-Ray API
+            //learn more at https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon.html
             queueFargateSvc.Service.TaskDefinition
                 .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
                 {
@@ -118,6 +127,7 @@ namespace Infra
                     Logging = logDriver
                 });
 
+            //Grant permission to write X-Ray segments
             queueFargateSvc.Service.TaskDefinition.TaskRole
                 .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
 

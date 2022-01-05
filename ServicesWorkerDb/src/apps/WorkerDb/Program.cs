@@ -12,11 +12,12 @@ IHost host = Host.CreateDefaultBuilder(args)
         AWSXRayRecorder.InitializeInstance(hostContext.Configuration);
         AWSSDKHandler.RegisterXRayForAllServices();
 
-        //Register Services
+        //Register DI Services
         services.AddDefaultAWSOptions(hostContext.Configuration.GetAWSOptions());
         services.AddAWSService<IAmazonDynamoDB>();
         services.AddAWSService<IAmazonSQS>();
 
+        //Register Worker Service
         services.AddHostedService<Worker>();
     })
     .Build();
