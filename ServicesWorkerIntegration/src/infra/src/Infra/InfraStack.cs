@@ -32,11 +32,13 @@ namespace Infra
             var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
             var importedVpcId = System.Environment.GetEnvironmentVariable("DEMO_VPC_ID");
 
+            //Import VPC using the value from env variable DEMO_VPC_ID
             var vpc = Vpc.FromLookup(this, "imported-vpc", new VpcLookupOptions
             {
                 VpcId = importedVpcId
             });
 
+            //Import ECS Cluster using VPC and the imported ClusterName
             var cluster = Cluster.FromClusterAttributes(this, "imported-cluester", new ClusterAttributes
             {
                 Vpc = vpc,
@@ -44,6 +46,7 @@ namespace Infra
                 SecurityGroups = new SecurityGroup[] { }
             });
 
+            //Import SNS Topic created from other Stack
             var topic = Topic.FromTopicArn(this, "imported-topic", importedSnsArn);
 
             //SQS for Worker APP that persist data on s3
@@ -66,18 +69,21 @@ namespace Infra
                 AutoDeleteObjects = true //Set to false for Real Env, this is only set for demo cleanup propose
             });
 
+            //Build docker container and publish to ECR
             var asset = new DockerImageAsset(this, "worker-integration-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerIntegration"),
                 File = "Dockerfile",
             });
 
+            //Create logDrive to reuse the same AWS CloudWatch Log group created from the other Stack
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {
                 LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
                 StreamPrefix = "ecs"
             });
 
+            //Level 3 Construct for SQS Queue processing
             var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services", new QueueProcessingFargateServiceProps
             {
                 Queue = workerIntegrationQueue,
@@ -94,11 +100,13 @@ namespace Infra
                 LogDriver = logDriver
             });
 
+            //Grant permission to S3 Bucket and SQS to consume message from the Queue
             bucket.GrantWrite(queueFargateSvc.TaskDefinition.TaskRole);
-
             workerIntegrationQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
 
-            //Add X-Ray Deamon 
+            //Sidecar container with X-Ray deamon to 
+            //gathers raw segment data, and relays it to the AWS X-Ray API
+            //learn more at https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon.html
             queueFargateSvc.Service.TaskDefinition
                 .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
                 {
@@ -114,6 +122,7 @@ namespace Infra
                     Logging = logDriver
                 });
 
+            //Grant permission to write X-Ray segments
             queueFargateSvc.Service.TaskDefinition.TaskRole
                 .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
 

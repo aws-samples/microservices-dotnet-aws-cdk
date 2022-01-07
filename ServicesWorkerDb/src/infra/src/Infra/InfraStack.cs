@@ -67,6 +67,7 @@ namespace Infra
                 TableName = "BooksCatalog",
                 PartitionKey = new Attribute { Name = "Id", Type = AttributeType.STRING }
             });
+            
             //Configure AutoScaling for DynamoDb Table
             IScalableTableAttribute readScaling = table.AutoScaleReadCapacity(new EnableScalingProps { MinCapacity = 1, MaxCapacity = 50 });
             readScaling.ScaleOnUtilization(new UtilizationScalingProps
