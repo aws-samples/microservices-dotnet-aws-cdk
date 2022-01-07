@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 using Amazon.DynamoDBv2;
 using Amazon.SQS;
 using Amazon.XRay.Recorder.Core;

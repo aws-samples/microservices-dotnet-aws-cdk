@@ -1,4 +1,4 @@
-# Welcome to your CDK C# project!
+# Welcome to your CDK C# project
 
 This is a blank project for C# development with CDK.
 
@@ -16,4 +16,6 @@ It uses the [.NET Core CLI](https://docs.microsoft.com/dotnet/articles/core/) to
 
 ```bash
 export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]')
+
+aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`demoserviceServiceURL`)].OutputValue  | [0]'
 ```
