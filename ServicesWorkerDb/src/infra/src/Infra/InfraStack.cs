@@ -43,7 +43,7 @@ namespace Infra
             var cluster = Cluster.FromClusterAttributes(this, "imported-cluester", new ClusterAttributes
             {
                 Vpc = vpc,
-                ClusterName = importedClusterName, 
+                ClusterName = importedClusterName,
                 SecurityGroups = new SecurityGroup[] { }
             });
 
@@ -67,7 +67,6 @@ namespace Infra
                 TableName = "BooksCatalog",
                 PartitionKey = new Attribute { Name = "Id", Type = AttributeType.STRING }
             });
-            
             //Configure AutoScaling for DynamoDb Table
             IScalableTableAttribute readScaling = table.AutoScaleReadCapacity(new EnableScalingProps { MinCapacity = 1, MaxCapacity = 50 });
             readScaling.ScaleOnUtilization(new UtilizationScalingProps
@@ -79,9 +78,9 @@ namespace Infra
             var asset = new DockerImageAsset(this, "worker-db-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerDb"),
-                File = "Dockerfile",
+                File = "Dockerfile"
             });
-            
+
             //Create logDrive to reuse the same AWS CloudWatch Log group created from the other Stack
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {

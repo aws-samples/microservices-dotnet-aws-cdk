@@ -83,6 +83,7 @@ namespace Infra
                 },
             });
 
+
             albFargateSvc.Service.TaskDefinition
                 .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
                 {
