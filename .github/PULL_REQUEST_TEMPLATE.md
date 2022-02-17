@@ -1,13 +1,13 @@
-##### SUMMARY
+# SUMMARY
 <!--- Describe the change below, including rationale and design decisions -->
 
-### BEFORE/AFTER SCREENSHOTS OR ANIMATED GIF
+## BEFORE/AFTER SCREENSHOTS OR ANIMATED GIF
 <!--- Skip this if not applicable -->
 
-### TEST PLAN
+## TEST PLAN
 <!--- What steps were taken to verify -->
 
-### ADDITIONAL INFORMATION
+## ADDITIONAL INFORMATION
 <!--- HINT: Include "Fixes #nnn" if you are fixing an existing issue -->
 <!--- Check any relevant boxes with "x" -->
 - [ ] Has associated issue:
