@@ -77,7 +77,7 @@ aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text 
 
 
 ### Test the Solution
-
+[TODO: add guide]
 ### .NET Observability with X-Ray and CloudWatch
 
 [TODO: Add Observability details]
