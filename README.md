@@ -34,13 +34,13 @@ Before exploring the code, please ensure you have the following tools to deploy 
 * [_Docker_](https://docs.docker.com/engine/install/)
 * [_VSCode_ _(or your preferred IDE)_](https://code.visualstudio.com/)
 
-This repository contains two paths for deployment: **Script deployment**"**and**Step-by-step deployment**"
+This repository contains two paths for deployment: **[Script deployment](#script-deployment)** and **[Step-by-step deployment](#step-by-step-deployment)**"
 
 #### **Script deployment**
 
 This path is for those not interested in the details of the steps executed to deploy the solution. You can run the script as instructed below and jump into the test.
 
-- Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
+* Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
 
 ```bash
 ./deploy.sh
@@ -118,7 +118,7 @@ aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text 
 
 After exploring this solution, please remember to clean up, here's the script to help cleaning up.
 
-- Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
+* Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
 
 ```bash
 ./clean.sh
