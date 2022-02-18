@@ -8,8 +8,8 @@ This repository contains a sample implementation of Fanout Architecture using .N
 
 **Componets:**
 
-1. [.NET6 Web API Microservices](./WebAPI/README.md) - Demo Web API to simulete end-user requests.
-1. [.NET6 Worker Service 1](./ServicesWorkerDb/README.md) - Demo Worker Services that persist on DynamoDb.
+1. [.NET6 Web API Microservices](./WebAPI/README.md) - Demo Web API to simulate end-user requests.
+1. [.NET6 Worker Service 1](./ServicesWorkerDb/README.md) - Demo Worker Services that persist on DynamoDB.
 1. [.NET6 Worker Service 2](./ServicesWorkerIntegration/README.md) - Demo Worker Services that persist on S3.
 1. [Amazon SNS](https://aws.amazon.com/sns/) - Fully managed pub/sub messaging for asynchronous processing.
 1. [Amazon SQS](https://aws.amazon.com/sqs/) - Fully managed message queues for microservices.
@@ -22,6 +22,17 @@ This repository contains a sample implementation of Fanout Architecture using .N
 Define cloud infrastructure using familiar programming languages [(C#)](./WebAPI/src/infra/README.md)
 
 ### Guide to deploy and test the sample
+
+#### Prerequisites
+
+Before exploring the code, please ensure you have the following tools to deploy and see the demo working.
+
+* [_.NET 6_](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+* [_Git CLI_](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* [_AWS CLI_](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+* [_AWS CDK v2_](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
+* [_Docker_](https://docs.docker.com/engine/install/)
+* [_VSCode_ _(or your preferred IDE)_](https://code.visualstudio.com/)
 
 This repository contains two paths for deployment: **Script deployment**"**and**Step-by-step deployment**"
 
