@@ -3,9 +3,23 @@
 This repository contains a sample implementation of Fanout Architecture using ".NET6" Worker Services to process messages from SNS Topic and SQS Queue. Since the Worker Services would have no UI, to operate this solution, you need Observability implemented. In this repository, you can also find sample .NET Observability implementation using the combination of AWS X-Ray and AWS CloudWatch. To provision this solution, you can use AWS CDK to implement your modern Infrastructure as Code, using .NET C# to provision all AWS Resources your application needs.
 
 ### Architecture
-[TODO: add Image here]
 
-[TODO: Describe the Architecture componets]
+![TODO: add Image here](./.github/docs/imgs/CDK-Architecture-ECS-Fargate.jpg)
+
+**Componets:**
+
+1. [.NET6 Web API Microservices](./WebAPI/README.md) - Demo Web API to simulete end-user requests.
+1. [.NET6 Worker Service 1](./ServicesWorkerDb/README.md) - Demo Worker Services that persist on DynamoDb.
+1. [.NET6 Worker Service 2](./ServicesWorkerIntegration/README.md) - Demo Worker Services that persist on S3.
+1. [Amazon SNS](https://aws.amazon.com/sns/) - Fully managed pub/sub messaging for asynchronous processing.
+1. [Amazon SQS](https://aws.amazon.com/sqs/) - Fully managed message queues for microservices.
+1. [Amazon DynamoDb Table](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) -  Fast, flexible NoSQL database service for single-digit millisecond performance at any scale.
+1. [S3 Bucket](https://aws.amazon.com/s3/) - Object storage built to retrieve any amount of data from anywhere.
+1. [AWS X-Ray](https://aws.amazon.com/xray/) - Analyze and debug production, distributed applications.
+1. [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) -  Observability of your AWS resources and applications on AWS.
+1. [Amazon ECR](https://aws.amazon.com/ecr/) - Easily store, share, and deploy your container software anywhere.
+1. [AWS CDK](https://aws.amazon.com/cdk/) - 
+Define cloud infrastructure using familiar programming languages [(C#)](./WebAPI/src/infra/README.md)
 
 ### Guide to deploy and test the sample
 
