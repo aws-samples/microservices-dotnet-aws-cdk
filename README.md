@@ -1,8 +1,8 @@
-## Sample .NET6 Worker Services with AWS CDK and AWS Fargate
+# Sample .NET6 Worker Services with AWS CDK and AWS Fargate
 
 This repository contains a sample implementation of Fanout Architecture using .NET6 Worker Services to process messages from Amazon SNS Topic and Amazon SQS Queue. Since the Worker Services would have no UI, to operate this solution, you need Observability implemented. In this repository, you can also find sample .NET Observability implementation using the combination of AWS X-Ray and Amazon CloudWatch. To provision this solution, you can use AWS CDK to implement your modern Infrastructure as Code, using .NET C# to provision all AWS Resources your application needs.
 
-### Architecture
+## Architecture
 
 ![TODO: add Image here](./.github/docs/imgs/CDK-Architecture-ECS-Fargate.jpg)
 
@@ -21,9 +21,9 @@ This repository contains a sample implementation of Fanout Architecture using .N
 1. [AWS CDK](https://aws.amazon.com/cdk/) -
 Define cloud infrastructure using familiar programming languages [(C#)](./WebAPI/src/infra/README.md)
 
-### Guide to deploy and test the sample
+## Guide to deploy and test the sample
 
-#### Prerequisites
+### Prerequisites
 
 Before exploring the code, please ensure you have the following tools to deploy and see the demo working.
 
@@ -36,7 +36,7 @@ Before exploring the code, please ensure you have the following tools to deploy 
 
 This repository contains two paths for deployment: **[Script deployment](#script-deployment)** and **[Step-by-step deployment](#step-by-step-deployment)**"
 
-#### **Script deployment**
+### **Script deployment**
 
 This path is for those not interested in the details of the steps executed to deploy the solution. You can run the script as instructed below and jump into the test.
 
@@ -48,11 +48,13 @@ This path is for those not interested in the details of the steps executed to de
 
 After completing the deployment, you can copy the printed URL like <http://WebAp-demos-XXXXXXXXXXXX-9999999999.us-west-2.elb.amazonaws.com> and jumpt to test
 
-#### **Step-by-Step deployment**
+### **Step-by-Step deployment**
 
 This path is for those who want to execute step-by-step to learn and see each step's results before continuing to the topic [**Test the Solution**](#test-the-solution).
 
-##### Deploy WebAPI microservice
+Run the following commands:
+
+#### Deploy WebAPI microservice
 
 ```bash
 cd WebAPI/src/infra/ 
@@ -63,14 +65,18 @@ export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfr
 cd -
 ```
 
-1. Navigate to the CDK project folder for the WebAPI;
+This is what you just did:
+
+1. Navigated to the CDK project folder for the WebAPI;
 2. Bootstrap your environment, account, and region to run the CDK project;
 3. Synthesize the project to validate the implementation and produce the CloudFormation template to be deployed;
 4. Deploy the CloudFormation Stack after your confirmation;
 5. Query the VPC ID created from the first Stack and export it to a local environment variable DEMO_VPC_ID
-6. Navigate back to the root folder
+6. Navigated back to the root folder
 
-##### Deploy the first Worker Services that persist on DynamoDb Table
+#### Deploy the first Worker Services that persist on DynamoDb Table
+
+Run the following commands:
 
 ```bash
 cd ServicesWorkerDb/src/infra/ 
@@ -79,12 +85,16 @@ cdk deploy
 cd -
 ```
 
-1. Navigate to the CDK project folder for the Worker Service that persists into DynamoDB
+This is what you just did:
+
+1. Navigated to the CDK project folder for the Worker Service that persists into DynamoDB
 2. Then synthesize
 3. and deploy the Stack.
-4. Navigate back to the root folder
+4. Navigated back to the root folder
 
-##### Deploy the second Worker Services that persist on S3 Bucket
+#### Deploy the second Worker Services that persist on S3 Bucket
+
+Run the following commands:
 
 ```bash
 cd ServicesWorkerIntegration/src/infra/
@@ -93,12 +103,14 @@ cdk deploy
 cd -
 ```
 
-1. Navigate to the CDK project folder for the Worker Service that persists into S3 Bucket
+This is what you just did:
+
+1. Navigated to the CDK project folder for the Worker Service that persists into S3 Bucket
 2. Then synthesize
 3. and deploy the Stack.
-4. Navigate back to the root folder
+4. Navigated back to the root folder
 
-##### Print the URL for testing
+#### Print the URL for testing
 
 ```bash
 aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`demoserviceServiceURL`)].OutputValue  | [0]'
@@ -106,7 +118,7 @@ aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text 
 
 1. This command will show the URL you'll use for testing.
 
-### Test the Solution
+## Test the Solution
 
 [TODO: add guide]
 
@@ -114,7 +126,7 @@ aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text 
 
 [TODO: Add Observability details]
 
-### Clean up Resources
+## Clean up Resources
 
 After exploring this solution, please remember to clean up, here's the script to help cleaning up.
 
@@ -124,7 +136,7 @@ After exploring this solution, please remember to clean up, here's the script to
 ./clean.sh
 ```
 
-### Related content
+## Related content
 
 [TODO: add guide]
 
