@@ -5,6 +5,9 @@
     <UserSecretsId>dotnet-WorkerDb-2E594750-EFDD-4104-9DE3-1139BE00B0E8</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>WorkerDb</RootNamespace>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>

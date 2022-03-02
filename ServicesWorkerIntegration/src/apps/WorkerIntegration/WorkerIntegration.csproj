@@ -5,6 +5,9 @@
     <UserSecretsId>dotnet-WorkerIntegration-16DA5987-F46F-4341-A563-D76723C9EC3C</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>WorkerIntegration</RootNamespace>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
