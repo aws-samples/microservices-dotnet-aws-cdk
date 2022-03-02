@@ -53,7 +53,8 @@ namespace Infra
             var workerIntegrationQueue = new Queue(this, "worker-integration-queue", new QueueProps
             {
                 QueueName = "worker-integration-queue",
-                RemovalPolicy = cleanUpRemovePolicy
+                RemovalPolicy = cleanUpRemovePolicy,
+                Encryption = QueueEncryption.KMS_MANAGED 
             });
 
             //Grant Permission & Subscribe

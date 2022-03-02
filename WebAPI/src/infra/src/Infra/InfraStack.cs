@@ -8,6 +8,7 @@ using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.KMS;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Constructs;
@@ -35,19 +36,25 @@ namespace Infra
                 ContainerInsights = true,
             });
 
+            var encryptionKey = new Key(this, "demo-key", new KeyProps
+            {
+                EnableKeyRotation = true
+            });
+
             //ECR
             //Build docker image and publish on ECR Repository
             var asset = new DockerImageAsset(this, "web-app-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/SampleWebApp"),
-                File = "Dockerfile"
+                File = "Dockerfile"         
             });
 
             //SNS Topic
             Topic topic = new Topic(this, "Topic", new TopicProps
             {
                 DisplayName = "Customer subscription topic",
-                TopicName = "demo-web-app-topic"
+                TopicName = "demo-web-app-topic",
+                MasterKey = encryptionKey 
             });
 
             //CloudWatch LogGroup and ECS LogDriver
@@ -58,7 +65,8 @@ namespace Infra
                 {
                     LogGroupName = logGroupName,
                     Retention = RetentionDays.ONE_DAY,
-                    RemovalPolicy = cleanUpRemovePolicy
+                    RemovalPolicy = cleanUpRemovePolicy,
+                    EncryptionKey = encryptionKey
                 }),
                 StreamPrefix = "ecs"
             });
