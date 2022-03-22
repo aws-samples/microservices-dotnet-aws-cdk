@@ -1,16 +1,4 @@
 {
   "app": "dotnet run --project src/Infra/Infra.csproj",
-  "context": {
-    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": false,
-    "aws-cdk:enableDiffNoFail": "false",
-    "@aws-cdk/core:stackRelativeExports": "false",
-    "@aws-cdk/aws-secretsmanager:parseOwnedSecretName": false,
-    "@aws-cdk/aws-kms:defaultKeyPolicies": false,
-    "@aws-cdk/aws-s3:grantWriteWithoutAcl": false,
-    "@aws-cdk/aws-ecs-patterns:removeDefaultDesiredCount": false,
-    "@aws-cdk/aws-rds:lowercaseDbIdentifier": false,
-    "@aws-cdk/aws-efs:defaultEncryptionAtRest": false,
-    "@aws-cdk/aws-lambda:recognizeVersionProps": false,
-    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": false
-  }
+  "context": {}
 }

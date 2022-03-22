@@ -65,8 +65,7 @@ namespace Infra
                 {
                     LogGroupName = logGroupName,
                     Retention = RetentionDays.ONE_DAY,
-                    RemovalPolicy = cleanUpRemovePolicy,
-                    EncryptionKey = encryptionKey
+                    RemovalPolicy = cleanUpRemovePolicy
                 }),
                 StreamPrefix = "ecs"
             });

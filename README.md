@@ -40,10 +40,15 @@ This repository contains two paths for deployment: **[Script deployment](#script
 
 This path is for those not interested in the details of the steps executed to deploy the solution. You can run the script as instructed below and jump into the test.
 
-* Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
-
+For: [Linux & MacOS]
 ```bash
 ./deploy.sh
+```
+
+For: [Windows]
+
+```PowerShell
+.\deploy.ps1
 ```
 
 After completing the deployment, you can copy the printed URL like <http://WebAp-demos-XXXXXXXXXXXX-9999999999.us-west-2.elb.amazonaws.com> and jumpt to test
@@ -132,8 +137,16 @@ After exploring this solution, please remember to clean up, here's the script to
 
 * Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
 
+For: [Linux & MacOS]
+
 ```bash
 ./clean.sh
+```
+
+For: [Windows]
+
+```PowerShell
+.\clean.ps1
 ```
 
 ## Related content
