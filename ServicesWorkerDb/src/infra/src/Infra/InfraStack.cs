@@ -13,6 +13,7 @@ using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
 using Amazon.CDK.AWS.SQS;
+using Amazon.CDK.AWS.KMS;
 using Constructs;
 
 namespace Infra
@@ -65,7 +66,8 @@ namespace Infra
             {
                 RemovalPolicy = cleanUpRemovePolicy,
                 TableName = "BooksCatalog",
-                PartitionKey = new Attribute { Name = "Id", Type = AttributeType.STRING }
+                PartitionKey = new Attribute { Name = "Id", Type = AttributeType.STRING },
+                Encryption = TableEncryption.AWS_MANAGED
             });
             //Configure AutoScaling for DynamoDb Table
             IScalableTableAttribute readScaling = table.AutoScaleReadCapacity(new EnableScalingProps { MinCapacity = 1, MaxCapacity = 50 });
@@ -85,7 +87,7 @@ namespace Infra
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {
                 LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
-                StreamPrefix = "ecs"
+                StreamPrefix = "ecs/worker-db"
             });
 
             //Level 3 Construct for SQS Queue processing

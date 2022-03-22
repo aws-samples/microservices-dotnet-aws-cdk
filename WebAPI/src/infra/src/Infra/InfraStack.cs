@@ -36,25 +36,19 @@ namespace Infra
                 ContainerInsights = true,
             });
 
-            var encryptionKey = new Key(this, "demo-key", new KeyProps
-            {
-                EnableKeyRotation = true
-            });
-
             //ECR
             //Build docker image and publish on ECR Repository
             var asset = new DockerImageAsset(this, "web-app-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/SampleWebApp"),
-                File = "Dockerfile"         
+                File = "Dockerfile"
             });
 
             //SNS Topic
             Topic topic = new Topic(this, "Topic", new TopicProps
             {
                 DisplayName = "Customer subscription topic",
-                TopicName = "demo-web-app-topic",
-                MasterKey = encryptionKey 
+                TopicName = "demo-web-app-topic"
             });
 
             //CloudWatch LogGroup and ECS LogDriver
@@ -67,7 +61,7 @@ namespace Infra
                     Retention = RetentionDays.ONE_DAY,
                     RemovalPolicy = cleanUpRemovePolicy
                 }),
-                StreamPrefix = "ecs"
+                StreamPrefix = "ecs/web-api"
             });
 
             var albFargateSvc = new ApplicationLoadBalancedFargateService(this, "demo-service", new ApplicationLoadBalancedFargateServiceProps

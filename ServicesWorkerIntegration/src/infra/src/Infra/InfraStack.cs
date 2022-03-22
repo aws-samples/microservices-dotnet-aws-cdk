@@ -8,6 +8,7 @@ using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.KMS;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.SNS;
@@ -27,6 +28,7 @@ namespace Infra
             var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
 
             //Import Resources
+            var importedKmsKeyRarn = Fn.ImportValue("DemoKmsKeyArn");
             var importedSnsArn = Fn.ImportValue("DemoSnsTopicArn");
             var importedClusterName = Fn.ImportValue("DemoClusterName");
             var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
@@ -54,7 +56,7 @@ namespace Infra
             {
                 QueueName = "worker-integration-queue",
                 RemovalPolicy = cleanUpRemovePolicy,
-                Encryption = QueueEncryption.KMS_MANAGED 
+                Encryption = QueueEncryption.KMS
             });
 
             //Grant Permission & Subscribe
@@ -63,7 +65,7 @@ namespace Infra
             //S3 Bucket
             var bucket = new Bucket(this, "demo-bucket", new BucketProps
             {
-                Encryption = BucketEncryption.S3_MANAGED,
+                Encryption = BucketEncryption.KMS,
                 EnforceSSL = true,
                 BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
                 RemovalPolicy = cleanUpRemovePolicy,
@@ -81,7 +83,7 @@ namespace Infra
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {
                 LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
-                StreamPrefix = "ecs"
+                StreamPrefix = "ecs/worker-integration"
             });
 
             //Level 3 Construct for SQS Queue processing
