@@ -16,7 +16,7 @@ using Amazon.CDK.AWS.SQS;
 using Amazon.CDK.AWS.KMS;
 using Constructs;
 
-namespace Infra
+namespace InfraWorkerDb
 {
     public class InfraStack : Stack
     {

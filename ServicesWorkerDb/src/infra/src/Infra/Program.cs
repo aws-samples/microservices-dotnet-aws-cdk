@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 using Amazon.CDK;
 
-namespace Infra
+namespace InfraWorkerDb
 {
     sealed class Program
     {

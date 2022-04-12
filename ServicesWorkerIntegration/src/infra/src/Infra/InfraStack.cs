@@ -16,7 +16,7 @@ using Amazon.CDK.AWS.SNS.Subscriptions;
 using Amazon.CDK.AWS.SQS;
 using Constructs;
 
-namespace Infra
+namespace InfraWorkerIntegration
 {
     public class InfraStack : Stack
     {

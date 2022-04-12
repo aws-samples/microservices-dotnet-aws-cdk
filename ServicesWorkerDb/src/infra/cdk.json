@@ -1,4 +1,4 @@
 {
-  "app": "dotnet run --project src/Infra/Infra.csproj",
+  "app": "dotnet run --project src/Infra/InfraWorkerDb.csproj",
   "context": {}
 }

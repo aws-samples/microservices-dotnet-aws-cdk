@@ -13,7 +13,7 @@ using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Constructs;
 
-namespace Infra
+namespace InfraSampleWebApp
 {
     public class InfraStack : Stack
     {
