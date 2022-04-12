@@ -8,21 +8,26 @@ using System.Text.Json;
 using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Core.Internal.Entities;
 using Amazon.XRay.Recorder.Core.Sampling;
+using Amazon.CloudWatch.EMF.Logger;
+using Amazon.CloudWatch.EMF.Model;
 
 namespace WorkerDb;
 
 public class Worker : BackgroundService
 {
     private const string XRAY_SERVICE_NAME = "worker-db";
+    private readonly string _workerId;
     private readonly ILogger<Worker> _logger;
     private readonly IAmazonSQS _sqsClient;
     private readonly IAmazonDynamoDB _dynamoDbClient;
-
-    public Worker(ILogger<Worker> logger, IAmazonSQS sqsClient, IAmazonDynamoDB dynamoDbClient)
+    private readonly IMetricsLogger _metrics;
+    public Worker(ILogger<Worker> logger, IMetricsLogger metricsLogger, IAmazonSQS sqsClient, IAmazonDynamoDB dynamoDbClient)
     {
+        _workerId = Guid.NewGuid().ToString();
         _logger = logger;
         _sqsClient = sqsClient;
         _dynamoDbClient = dynamoDbClient;
+        _metrics = metricsLogger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -32,15 +37,15 @@ public class Worker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME);
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            _logger.LogInformation("The SQS queue's URL is {queueUrl}", queueUrl);
+            _logger.LogDebug("Worker running at: {time}", DateTimeOffset.Now);
+            _logger.LogDebug("The SQS queue's URL is {queueUrl}", queueUrl);
 
             try
             {
                 var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
-                _logger.LogInformation("Message ID: {messageId}", messageId);
+                _logger.LogDebug("Message ID: {messageId}", messageId);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "error consuming SQS Queue");
                 AWSXRayRecorder.Instance.AddException(ex);
@@ -50,11 +55,19 @@ public class Worker : BackgroundService
                 var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
                 AWSXRayRecorder.Instance.EndSegment();
                 AWSXRayRecorder.Instance.Emitter.Send(traceEntity);
-                _logger.LogInformation($"Trace sent {traceEntity.TraceId}");
+                _logger.LogDebug("Trace sent {TraceId}", traceEntity.TraceId);
             }
 
             await Task.Delay(1000 * 5, stoppingToken);
         }
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        // EMF Graceful Shutdown
+        // to learn more read: https://github.com/awslabs/aws-embedded-metrics-dotnet#graceful-shutdown
+        await _metrics.ShutdownAsync();
+        await base.StopAsync(cancellationToken);
     }
 
     /// <summary>
@@ -72,7 +85,7 @@ public class Worker : BackgroundService
         var receiveMessageRequest = new ReceiveMessageRequest
         {
             AttributeNames = { "All" },
-            MaxNumberOfMessages = 1,
+            MaxNumberOfMessages = 10,
             MessageAttributeNames = { "All" },
             QueueUrl = queueUrl,
             VisibilityTimeout = 120,
@@ -83,6 +96,11 @@ public class Worker : BackgroundService
 
         foreach (var msgItem in receivedMessageResponse.Messages)
         {
+            //Add business-specific tracking to measure the time execution for each
+            // messages after receiving it from the queue
+            // Start timer
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             var sqsMsg = JsonSerializer.Deserialize<PaylaodMsg>(msgItem.Body);
             var book = JsonSerializer.Deserialize<Book>(sqsMsg.Message);
 
@@ -100,15 +118,20 @@ public class Worker : BackgroundService
                 ReceiptHandle = msgItem.ReceiptHandle
             });
 
+            //Stop timer
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+
             //Close/Submmit Segment with Propagated TraceId
             var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
             AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
             AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
 
             //Log some informations for traceability
-            _logger.LogInformation($"SQS Messages received id:{msgItem.MessageId} recived TraceId: {propagatedSegment.TraceId}");
-            _logger.LogInformation($"Book saved id:{book.Id} recived TraceId: {propagatedSegment.TraceId}");
-            _logger.LogInformation($"SQS Message Attributes {JsonSerializer.Serialize(msgItem.Attributes)}");
+            _logger.LogInformation("SQS Messages received id:{MessageId} recived TraceId: {TraceId}", msgItem.MessageId, propagatedSegment.TraceId);
+            _logger.LogInformation("Book saved id:{Id} recived TraceId: {TraceId}", book.Id, propagatedSegment.TraceId);
+
+            EmitMetrics(msgItem.Attributes, propagatedSegment.TraceId, elapsedMs);
         }
 
         return receivedMessageResponse?.Messages?.Select(s => s.MessageId).ToArray();
@@ -124,5 +147,25 @@ public class Worker : BackgroundService
         DynamoDBContext context = new DynamoDBContext(_dynamoDbClient);
         await context.SaveAsync(book);
     }
+
+    private void EmitMetrics(Dictionary<string, string> msgAttributes, string traceId, long processingTimeMilliseconds)
+    {
+        //Add dimentions
+        var dimensionSet = new DimensionSet();
+        dimensionSet.AddDimension("WorkerId", _workerId);
+        _metrics.SetDimensions(dimensionSet);
+
+        //Add custom business-specific metrics
+        _metrics.PutMetric("ProcessedMessageCount", 1, Unit.COUNT);
+        _metrics.PutMetric("ProcessingLatency", processingTimeMilliseconds, Unit.MILLISECONDS);
+
+        //Add some properties
+        _metrics.PutProperty("TraceId", traceId);
+        _metrics.PutProperty("MessageAttributes", msgAttributes);
+
+        _logger.LogInformation("Flushing");
+        _metrics.Flush();
+    }
+
 }
 
