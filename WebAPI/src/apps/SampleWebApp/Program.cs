@@ -13,8 +13,8 @@ Environment.SetEnvironmentVariable("MY_SERVICES_INSTANCE", $"{MY_SERVICE_NAME}/{
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole(options => options.FormatterName = nameof(XrayCustomFormatter))
-                .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>()
-                .AddJsonConsole();
+                .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>();
+                //.AddJsonConsole();
 
 // Add services to the container.
 
