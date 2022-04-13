@@ -9,11 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.1" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.2.58" />
+    <PackageReference Include="Amazon.CloudWatch.EMF.Web" Version="0.1.0" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.2" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.3.47" />
     <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.1.77" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.1.139" />
   </ItemGroup>
 
 </Project>

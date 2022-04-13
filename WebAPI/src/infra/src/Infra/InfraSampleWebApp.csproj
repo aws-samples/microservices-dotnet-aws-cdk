@@ -27,4 +27,8 @@
 
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj" />
+  </ItemGroup>
+
 </Project>

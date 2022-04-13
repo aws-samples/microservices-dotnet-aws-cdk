@@ -23,11 +23,11 @@ public class Worker : BackgroundService
     private readonly IMetricsLogger _metrics;
     public Worker(ILogger<Worker> logger, IMetricsLogger metricsLogger, IAmazonSQS sqsClient, IAmazonDynamoDB dynamoDbClient)
     {
-        _workerId = Guid.NewGuid().ToString();
+        _workerId = $"{XRAY_SERVICE_NAME}/{Guid.NewGuid()}";
+        _metrics = metricsLogger;
         _logger = logger;
         _sqsClient = sqsClient;
         _dynamoDbClient = dynamoDbClient;
-        _metrics = metricsLogger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -157,7 +157,7 @@ public class Worker : BackgroundService
 
         //Add custom business-specific metrics
         _metrics.PutMetric("ProcessedMessageCount", 1, Unit.COUNT);
-        _metrics.PutMetric("ProcessingLatency", processingTimeMilliseconds, Unit.MILLISECONDS);
+        _metrics.PutMetric("ProcessingTime", processingTimeMilliseconds, Unit.MILLISECONDS);
 
         //Add some properties
         _metrics.PutProperty("TraceId", traceId);

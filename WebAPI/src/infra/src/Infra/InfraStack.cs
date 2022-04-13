@@ -6,9 +6,8 @@ using Amazon.CDK;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
+using Amazon.CDK.AWS.ECS.MyExtensions;
 using Amazon.CDK.AWS.ECS.Patterns;
-using Amazon.CDK.AWS.IAM;
-using Amazon.CDK.AWS.KMS;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Constructs;
@@ -20,6 +19,8 @@ namespace InfraSampleWebApp
         internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             const string XRAY_DEAMON = "xray-daemon";
+            const string CW_AGET = "cwagent";
+
             //Note: For demo' cleanup propose, this Sample Code will set RemovalPolicy == DESTROY
             //this will clean all resources when you cdk destroy
             var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
@@ -78,37 +79,33 @@ namespace InfraSampleWebApp
                         {
                             {"SNS_TOPIC_ARN", topic.TopicArn },
                             {"ASPNETCORE_URLS","http://+:80"},
-                            // {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" }
+                            {"EMF_LOG_GROUP_NAME", logGroupName }
                         },
                     LogDriver = logDriver
                 },
             });
 
-
-            albFargateSvc.Service.TaskDefinition
-                .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
-                {
-                    ContainerName = XRAY_DEAMON,
-                    Cpu = 32,
-                    MemoryLimitMiB = 256,
-                    PortMappings = new PortMapping[]{
-                    new PortMapping{
-                        ContainerPort = 2000,
-                        Protocol = Amazon.CDK.AWS.ECS.Protocol.UDP
-                    }},
-                    Image = ContainerImage.FromRegistry("public.ecr.aws/xray/aws-xray-daemon:latest"),
-                    Logging = logDriver
-                });
-
+            //Grant permission to Publish on the SNS Topic
             topic.GrantPublish(albFargateSvc.Service.TaskDefinition.TaskRole);
 
-            albFargateSvc.Service.TaskDefinition.TaskRole
-                .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
 
-            new CfnOutput(this, "DemoSnsTopicArn", new CfnOutputProps { Value = topic.TopicArn, ExportName = "DemoSnsTopicArn" });
-            new CfnOutput(this, "DemoClusterName", new CfnOutputProps { Value = cluster.ClusterName, ExportName = "DemoClusterName" });
-            new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
-            new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
+            //Custom shared C# Library (reusability of code)
+            albFargateSvc.Service.TaskDefinition
+                .AddXRayDeamon(new XRayDeamonProps
+                {
+                    XRayDeamonContainerName = XRAY_DEAMON,
+                    LogDriver = logDriver
+                }).AddCloudWatchAgent(new CloudWatchAgentProps
+                {
+                    AgentContainerName = CW_AGET,
+                    LogDriver = logDriver,
+                });
+
+            //Level 1 Cfn Output
+            _ = new CfnOutput(this, "DemoSnsTopicArn", new CfnOutputProps { Value = topic.TopicArn, ExportName = "DemoSnsTopicArn" });
+            _ = new CfnOutput(this, "DemoClusterName", new CfnOutputProps { Value = cluster.ClusterName, ExportName = "DemoClusterName" });
+            _ = new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
+            _ = new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
 
         }
     }

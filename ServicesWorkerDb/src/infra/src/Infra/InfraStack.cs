@@ -8,14 +8,12 @@ using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
-using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
 using Amazon.CDK.AWS.SQS;
-using Amazon.CDK.AWS.KMS;
 using Constructs;
-using System.Text.Json;
+using Amazon.CDK.AWS.ECS.MyExtensions;
 
 namespace InfraWorkerDb
 {
@@ -107,8 +105,7 @@ namespace InfraWorkerDb
                             {"WORKER_QUEUE_URL", workerDbQueue.QueueUrl },
                             {"AWS_REGION", this.Region},
                             {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" },
-                            {"EMF_LOG_GROUP_NAME", importedLogGroupName },
-                            //{"EMF_ENDPOINT", $"tcp://{CW_AGET}:25888" }
+                            {"EMF_LOG_GROUP_NAME", importedLogGroupName }
                         },
                 LogDriver = logDriver
             });
@@ -118,58 +115,17 @@ namespace InfraWorkerDb
             table.Grant(queueFargateSvc.TaskDefinition.TaskRole, "dynamodb:DescribeTable");
             workerDbQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
 
-
-            //Sidecar container with X-Ray deamon 
-            //to gathers raw segment data, and relays it to the AWS X-Ray API
-            //learn more at https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon.html
+            //Custom shared C# Library (reusability of code)
             queueFargateSvc.Service.TaskDefinition
-                .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
+                .AddXRayDeamon(new XRayDeamonProps
                 {
-                    ContainerName = XRAY_DEAMON,
-                    Cpu = 32,
-                    MemoryLimitMiB = 256,
-                    PortMappings = new PortMapping[]{
-                    new PortMapping{
-                        ContainerPort = 2000,
-                        Protocol = Amazon.CDK.AWS.ECS.Protocol.UDP
-                    }},
-                    Image = ContainerImage.FromRegistry("public.ecr.aws/xray/aws-xray-daemon:latest"),
-                    Logging = logDriver
-                });
-
-            //Grant permission to write X-Ray segments
-            queueFargateSvc.Service.TaskDefinition.TaskRole
-                .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
-
-
-            //Sidecar container with CloudWatch agent
-            // to send embedded metrics format logs
-            // learn more at https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Generation_CloudWatch_Agent.html
-            queueFargateSvc.Service.TaskDefinition
-                .AddContainer("cwagent", new ContainerDefinitionOptions
+                    XRayDeamonContainerName = XRAY_DEAMON,
+                    LogDriver = logDriver
+                }).AddCloudWatchAgent(new CloudWatchAgentProps
                 {
-                    ContainerName = CW_AGET,
-                    Cpu = 32,
-                    MemoryLimitMiB = 256,
-                    PortMappings = new PortMapping[]{
-                    new PortMapping{
-                        ContainerPort = 25888,
-                        Protocol = Amazon.CDK.AWS.ECS.Protocol.TCP
-                    }},
-                    Image = ContainerImage.FromRegistry("public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest"),
-                    Environment = new Dictionary<string, string>()
-                        {
-                            //"{\"logs\":{\"metrics_collected\":{\"emf\":{}}}}"
-                            //{"CW_CONFIG_CONTENT", JsonSerializer.Serialize(new { logs = new {metrics_collected = new {emf= new { } }} }) }
-                            { "CW_CONFIG_CONTENT", "{\"logs\":{\"metrics_collected\":{\"emf\":{}}}}" }
-                        },
-                    Logging = logDriver
+                    AgentContainerName = CW_AGET,
+                    LogDriver = logDriver,
                 });
-
-            //Grant permission to the cw agent 
-            queueFargateSvc.Service.TaskDefinition.TaskRole
-                .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("CloudWatchAgentServerPolicy"));
-
         }
     }
 }

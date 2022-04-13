@@ -6,9 +6,9 @@ using Amazon.CDK;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
+using Amazon.CDK.AWS.ECS.MyExtensions;
 using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.IAM;
-using Amazon.CDK.AWS.KMS;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.SNS;
@@ -23,12 +23,13 @@ namespace InfraWorkerIntegration
         internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             const string XRAY_DEAMON = "xray-daemon";
+            const string CW_AGET = "cwagent";
+
             //Note: For demo' cleanup propose, this Sample Code will set RemovalPolicy == DESTROY
             //this will clean all resources when you cdk destroy
             var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
 
             //Import Resources
-            var importedKmsKeyRarn = Fn.ImportValue("DemoKmsKeyArn");
             var importedSnsArn = Fn.ImportValue("DemoSnsTopicArn");
             var importedClusterName = Fn.ImportValue("DemoClusterName");
             var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
@@ -45,7 +46,7 @@ namespace InfraWorkerIntegration
             {
                 Vpc = vpc,
                 ClusterName = importedClusterName,
-                SecurityGroups = new SecurityGroup[] { }
+                SecurityGroups = System.Array.Empty<SecurityGroup>()
             });
 
             //Import SNS Topic created from other Stack
@@ -107,22 +108,16 @@ namespace InfraWorkerIntegration
             bucket.GrantWrite(queueFargateSvc.TaskDefinition.TaskRole);
             workerIntegrationQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
 
-            //Sidecar container with X-Ray deamon to 
-            //gathers raw segment data, and relays it to the AWS X-Ray API
-            //learn more at https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon.html
+            //Custom shared C# Library (reusability of code)
             queueFargateSvc.Service.TaskDefinition
-                .AddContainer("x-ray-deamon", new ContainerDefinitionOptions
+                .AddXRayDeamon(new XRayDeamonProps
                 {
-                    ContainerName = XRAY_DEAMON,
-                    Cpu = 32,
-                    MemoryLimitMiB = 256,
-                    PortMappings = new PortMapping[]{
-                    new PortMapping{
-                        ContainerPort = 2000,
-                        Protocol = Amazon.CDK.AWS.ECS.Protocol.UDP
-                    }},
-                    Image = ContainerImage.FromRegistry("public.ecr.aws/xray/aws-xray-daemon:latest"),
-                    Logging = logDriver
+                    XRayDeamonContainerName = XRAY_DEAMON,
+                    LogDriver = logDriver
+                }).AddCloudWatchAgent(new CloudWatchAgentProps
+                {
+                    AgentContainerName = CW_AGET,
+                    LogDriver = logDriver,
                 });
 
             //Grant permission to write X-Ray segments

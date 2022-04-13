@@ -1,14 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+using Amazon.CloudWatch.EMF.Web;
 using Amazon.SimpleNotificationService;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Microsoft.OpenApi.Models;
 using SampleWebApp.AppLogger;
+using emf = Amazon.CloudWatch.EMF;
+
+const string MY_SERVICE_NAME = "demo-web-api";
+Environment.SetEnvironmentVariable("MY_SERVICES_INSTANCE", $"{MY_SERVICE_NAME}/{Guid.NewGuid()}");
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole(options => options.FormatterName = nameof(XrayCustomFormatter))
-                .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>();
+                .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>()
+                .AddJsonConsole();
 
 // Add services to the container.
 
@@ -27,6 +33,16 @@ AWSSDKHandler.RegisterXRayForAllServices();
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
 
+//Register CloudWatch EMF for ASP.NET Core
+emf.Config.EnvironmentConfigurationProvider.Config = new emf.Config.Configuration
+{
+    ServiceName = MY_SERVICE_NAME,
+    ServiceType = "WebApi",
+    LogGroupName = Environment.GetEnvironmentVariable("EMF_LOG_GROUP_NAME"),
+    EnvironmentOverride = emf.Environment.Environments.ECS
+};
+builder.Services.AddEmf();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -38,7 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 
 //X-Ray
-app.UseXRay("demo-web-api");
+app.UseXRay(MY_SERVICE_NAME);
 
 app.UseRouting();
 
@@ -50,5 +66,8 @@ app.UseEndpoints(endpoints =>
         await context.Response.WriteAsync("Demo .NET Microservices v2");
     });
 });
+
+//Register CloudWatch EMF Middleware
+app.UseEmfMiddleware();
 
 app.Run();

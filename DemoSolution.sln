@@ -19,6 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerIntegration", "Servic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfraWorkerIntegration", "ServicesWorkerIntegration\src\infra\src\Infra\InfraWorkerIntegration.csproj", "{6D2D05F8-CD9A-49B9-9F0B-7EDF19E75FFB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{4FDEFB79-4CF9-478A-A729-5EC346445BFC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Amazon.CDK.AWS.ECS.MyExtensions", "Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj", "{EEFCD529-46DF-4490-8015-E66658EC4E33}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +53,10 @@ Global
 		{6D2D05F8-CD9A-49B9-9F0B-7EDF19E75FFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D2D05F8-CD9A-49B9-9F0B-7EDF19E75FFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D2D05F8-CD9A-49B9-9F0B-7EDF19E75FFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEFCD529-46DF-4490-8015-E66658EC4E33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEFCD529-46DF-4490-8015-E66658EC4E33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEFCD529-46DF-4490-8015-E66658EC4E33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEFCD529-46DF-4490-8015-E66658EC4E33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +68,7 @@ Global
 		{DA4AADEB-6F5A-4125-BE50-85E31974CCC9} = {5881D2F2-2866-4262-9909-DC5BDF539DF8}
 		{FFE68605-33E6-44D7-A3F8-4B66DDC3AD5E} = {19D7C420-ED87-40B7-9874-D3C731198BD1}
 		{6D2D05F8-CD9A-49B9-9F0B-7EDF19E75FFB} = {5881D2F2-2866-4262-9909-DC5BDF539DF8}
+		{EEFCD529-46DF-4490-8015-E66658EC4E33} = {4FDEFB79-4CF9-478A-A729-5EC346445BFC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {694017A2-98C1-4F50-8D14-CCB5AF3BCE72}

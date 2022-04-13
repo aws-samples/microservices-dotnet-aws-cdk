@@ -26,4 +26,8 @@
     <PackageReference Include="Amazon.Jsii.Analyzers" Version="*" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj" />
+  </ItemGroup>
+
 </Project>

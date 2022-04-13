@@ -8,17 +8,23 @@ using Amazon.S3.Model;
 using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Core.Internal.Entities;
 using Amazon.XRay.Recorder.Core.Sampling;
+using Amazon.CloudWatch.EMF.Model;
+using Amazon.CloudWatch.EMF.Logger;
 
 namespace WorkerIntegration;
 public class Worker : BackgroundService
 {
     private const string XRAY_SERVICE_NAME = "worker-integration";
+    private readonly string _workerId;
     private readonly ILogger<Worker> _logger;
     private readonly IAmazonSQS _sqsClient;
     private readonly IAmazonS3 _s3Client;
+    private readonly IMetricsLogger _metrics;
 
-    public Worker(ILogger<Worker> logger, IAmazonSQS sqsClient, IAmazonS3 s3Client)
+    public Worker(ILogger<Worker> logger, IMetricsLogger metricsLogger, IAmazonSQS sqsClient, IAmazonS3 s3Client)
     {
+        _workerId = $"{XRAY_SERVICE_NAME}/{Guid.NewGuid()}";
+        _metrics = metricsLogger;
         _logger = logger;
         _sqsClient = sqsClient;
         _s3Client = s3Client;
@@ -82,6 +88,11 @@ public class Worker : BackgroundService
 
         foreach (var msgItem in receivedMessageResponse.Messages)
         {
+            //Add business-specific tracking to measure the execution time for each
+            // messages after receiving it from the queue
+            // Start timer
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             //Create Segment with Propagated TraceId
             var tracerAtt = msgItem.Attributes.GetValueOrDefault("AWSTraceHeader");
             TraceHeader traceInfo = TraceHeader.FromString(tracerAtt);
@@ -96,14 +107,19 @@ public class Worker : BackgroundService
                 ReceiptHandle = msgItem.ReceiptHandle
             });
 
+            //Stop timer
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+
             //Close/Submmit Segment with Propagated TraceId
             var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
             AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
             AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
 
             //Log some informations for traceability
-            _logger.LogInformation($"SQS Messages received id:{msgItem.MessageId} recived TraceId: {propagatedSegment.TraceId}");
-            _logger.LogInformation($"SQS Message Attributes {JsonSerializer.Serialize(msgItem.Attributes)}");
+            _logger.LogInformation("SQS Messages received id:{MessageId} recived TraceId: {TraceId}", msgItem.MessageId, propagatedSegment.TraceId);
+
+            EmitMetrics(msgItem.Attributes, propagatedSegment.TraceId, elapsedMs);
         }
 
         return receivedMessageResponse?.Messages?.Select(s => s.MessageId).ToArray();
@@ -133,5 +149,25 @@ public class Worker : BackgroundService
         PutObjectResponse response2 = await _s3Client.PutObjectAsync(putRequest2);
 
         _logger.LogInformation($"Messages saved on S3 Bucket {putRequest1.Key} metadata seved on {putRequest2.Key} SQS Attr {JsonSerializer.Serialize(message.Attributes)}");
+
+    }
+
+    private void EmitMetrics(Dictionary<string, string> msgAttributes, string traceId, long processingTimeMilliseconds)
+    {
+        //Add dimentions
+        var dimensionSet = new DimensionSet();
+        dimensionSet.AddDimension("WorkerId", _workerId);
+        _metrics.SetDimensions(dimensionSet);
+
+        //Add custom business-specific metrics
+        _metrics.PutMetric("ProcessedMessageCount", 1, Unit.COUNT);
+        _metrics.PutMetric("ProcessingTime", processingTimeMilliseconds, Unit.MILLISECONDS);
+
+        //Add some properties
+        _metrics.PutProperty("TraceId", traceId);
+        _metrics.PutProperty("MessageAttributes", msgAttributes);
+
+        _logger.LogInformation("Flushing");
+        _metrics.Flush();
     }
 }
