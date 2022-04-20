@@ -14,7 +14,7 @@ using Amazon.CloudWatch.EMF.Logger;
 namespace WorkerIntegration;
 public class Worker : BackgroundService
 {
-    private const string XRAY_SERVICE_NAME = "worker-integration";
+    public const string MY_SERVICE_NAME = "worker-integration";
     private readonly string _workerId;
     private readonly ILogger<Worker> _logger;
     private readonly IAmazonSQS _sqsClient;
@@ -23,7 +23,7 @@ public class Worker : BackgroundService
 
     public Worker(ILogger<Worker> logger, IMetricsLogger metricsLogger, IAmazonSQS sqsClient, IAmazonS3 s3Client)
     {
-        _workerId = $"{XRAY_SERVICE_NAME}/{Guid.NewGuid()}";
+        _workerId = $"{MY_SERVICE_NAME}/{Guid.NewGuid()}";
         _metrics = metricsLogger;
         _logger = logger;
         _sqsClient = sqsClient;
@@ -36,7 +36,7 @@ public class Worker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME);
+            AWSXRayRecorder.Instance.BeginSegment(MY_SERVICE_NAME);
             _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
             _logger.LogInformation("The SQS queue's URL is {queueUrl}", queueUrl);
 
@@ -55,11 +55,19 @@ public class Worker : BackgroundService
                 var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
                 AWSXRayRecorder.Instance.EndSegment();
                 AWSXRayRecorder.Instance.Emitter.Send(traceEntity);
-                _logger.LogInformation($"Trace sent {traceEntity.TraceId}");
+                _logger.LogInformation("Trace sent {TraceId}", traceEntity.TraceId);
             }
 
             await Task.Delay(1000 * 5, stoppingToken);
         }
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        // EMF Graceful Shutdown
+        // to learn more read: https://github.com/awslabs/aws-embedded-metrics-dotnet#graceful-shutdown
+        await _metrics.ShutdownAsync();
+        await base.StopAsync(cancellationToken);
     }
 
     /// <summary>
@@ -96,7 +104,7 @@ public class Worker : BackgroundService
             //Create Segment with Propagated TraceId
             var tracerAtt = msgItem.Attributes.GetValueOrDefault("AWSTraceHeader");
             TraceHeader traceInfo = TraceHeader.FromString(tracerAtt);
-            AWSXRayRecorder.Instance.BeginSegment(XRAY_SERVICE_NAME, traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
+            AWSXRayRecorder.Instance.BeginSegment(MY_SERVICE_NAME, traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
 
             await PerformCRUDOperations(msgItem);
 
@@ -129,26 +137,25 @@ public class Worker : BackgroundService
     {
         var snsMsg = JsonSerializer.Deserialize<PaylaodMsg>(message.Body);
         Book myBook = JsonSerializer.Deserialize<Book>(snsMsg.Message);
+        var bucketName = Environment.GetEnvironmentVariable("WORKER_BUCKET_NAME");
 
         var putRequest1 = new PutObjectRequest
         {
-            BucketName = Environment.GetEnvironmentVariable("WORKER_BUCKET_NAME"),
+            BucketName = bucketName,
             Key = $"books/{myBook.Id}.json",
             ContentBody = snsMsg.Message
         };
-
-        PutObjectResponse response1 = await _s3Client.PutObjectAsync(putRequest1);
+        _ = await _s3Client.PutObjectAsync(putRequest1);
 
         var putRequest2 = new PutObjectRequest
         {
-            BucketName = Environment.GetEnvironmentVariable("WORKER_BUCKET_NAME"),
+            BucketName = bucketName,
             Key = $"sns_metadata/{message.MessageId}.json",
             ContentBody = message.Body
         };
+        _ = await _s3Client.PutObjectAsync(putRequest2);
 
-        PutObjectResponse response2 = await _s3Client.PutObjectAsync(putRequest2);
-
-        _logger.LogInformation($"Messages saved on S3 Bucket {putRequest1.Key} metadata seved on {putRequest2.Key} SQS Attr {JsonSerializer.Serialize(message.Attributes)}");
+        _logger.LogInformation("Messages saved on S3 Bucket {Key} metadata seved on {Key} SQS Attr {}", putRequest1.Key, putRequest2.Key, JsonSerializer.Serialize(message.Attributes));
 
     }
 

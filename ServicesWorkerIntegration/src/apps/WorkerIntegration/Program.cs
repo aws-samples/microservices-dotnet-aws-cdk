@@ -1,11 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+using Amazon.CloudWatch.EMF.Logger;
 using Amazon.S3;
 using Amazon.SQS;
 using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using WorkerIntegration;
-using emf = Amazon.CloudWatch.EMF;
+using EMF = Amazon.CloudWatch.EMF;
 
 
 IHost host = Host.CreateDefaultBuilder(args)
@@ -27,23 +28,17 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddAWSService<IAmazonSQS>();
 
         //Register EMF
-        services.AddSingleton<emf.Logger.IMetricsLogger, emf.Logger.MetricsLogger>(f =>
+        EMF.Config.EnvironmentConfigurationProvider.Config = new EMF.Config.Configuration
         {
-            // Manually setup the configuration for the library
-            var configuration = new emf.Config.Configuration
-            {
-                ServiceName = "worker-db",
-                ServiceType = "WorkerServices",
-                LogGroupName = Environment.GetEnvironmentVariable("EMF_LOG_GROUP_NAME"),
-                EnvironmentOverride = emf.Environment.Environments.ECS
-            };
-
-            var loggerFactory = f.GetService<ILoggerFactory>();
-            // create the logger using a DefaultEnvironment which will write over TCP
-            var _emfEnv = new emf.Environment.DefaultEnvironment(configuration, loggerFactory);
-
-            return new emf.Logger.MetricsLogger(_emfEnv, loggerFactory);
-        });
+            ServiceName = Worker.MY_SERVICE_NAME,
+            ServiceType = "WorkerServices",
+            LogGroupName = Environment.GetEnvironmentVariable("EMF_LOG_GROUP_NAME"),
+            EnvironmentOverride = EMF.Environment.Environments.ECS
+        };
+        services.AddScoped<IMetricsLogger, MetricsLogger>();
+        services.AddSingleton<EMF.Environment.IEnvironmentProvider, EMF.Environment.EnvironmentProvider>();
+        services.AddSingleton<EMF.Environment.IResourceFetcher, EMF.Environment.ResourceFetcher>();
+        services.AddSingleton(EMF.Config.EnvironmentConfigurationProvider.Config);
 
         services.AddHostedService<Worker>();
     })

@@ -71,12 +71,12 @@ public class BooksController : ControllerBase
         //Unique Id for this WebAPI Instance
         dimensionSet.AddDimension("WebApiInstanceId", Environment.GetEnvironmentVariable("MY_SERVICES_INSTANCE"));
         //Book's Authors
-        dimensionSet.AddDimension("Authors", String.Join(",", book.BookAuthors));
+        dimensionSet.AddDimension("Authors", string.Join(",", book.BookAuthors));
         //Book's Year
         dimensionSet.AddDimension("Year", book.Year.ToString());
         _metrics.SetDimensions(dimensionSet);
 
-        _metrics.PutMetric("ProcessedMessageCount", 1, Unit.COUNT);
+        _metrics.PutMetric("PublishedMessageCount", 1, Unit.COUNT);
         _metrics.PutMetric("ProcessingTime", processingTimeMilliseconds, Unit.MILLISECONDS);
 
         //Add some properties

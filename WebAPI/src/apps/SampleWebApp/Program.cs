@@ -5,7 +5,7 @@ using Amazon.SimpleNotificationService;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Microsoft.OpenApi.Models;
 using SampleWebApp.AppLogger;
-using emf = Amazon.CloudWatch.EMF;
+using EMF = Amazon.CloudWatch.EMF;
 
 const string MY_SERVICE_NAME = "demo-web-api";
 Environment.SetEnvironmentVariable("MY_SERVICES_INSTANCE", $"{MY_SERVICE_NAME}/{Guid.NewGuid()}");
@@ -34,12 +34,12 @@ builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
 
 //Register CloudWatch EMF for ASP.NET Core
-emf.Config.EnvironmentConfigurationProvider.Config = new emf.Config.Configuration
+EMF.Config.EnvironmentConfigurationProvider.Config = new EMF.Config.Configuration
 {
     ServiceName = MY_SERVICE_NAME,
     ServiceType = "WebApi",
     LogGroupName = Environment.GetEnvironmentVariable("EMF_LOG_GROUP_NAME"),
-    EnvironmentOverride = emf.Environment.Environments.ECS
+    EnvironmentOverride = EMF.Environment.Environments.ECS
 };
 builder.Services.AddEmf();
 
@@ -58,6 +58,9 @@ app.UseXRay(MY_SERVICE_NAME);
 
 app.UseRouting();
 
+//Register CloudWatch EMF Middleware
+app.UseEmfMiddleware();
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
@@ -66,8 +69,5 @@ app.UseEndpoints(endpoints =>
         await context.Response.WriteAsync("Demo .NET Microservices v2");
     });
 });
-
-//Register CloudWatch EMF Middleware
-app.UseEmfMiddleware();
 
 app.Run();
