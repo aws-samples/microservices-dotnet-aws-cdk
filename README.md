@@ -36,7 +36,7 @@ Before exploring the code, please ensure you have the following tools to deploy 
 
 This repository contains two paths for deployment: **[Script deployment](#script-deployment)** and **[Step-by-step deployment](#step-by-step-deployment)**"
 
-### **Script deployment**
+### **Deployment Script**
 
 This path is for those not interested in the details of the steps executed to deploy the solution. You can run the script as instructed below and jump into the test.
 
