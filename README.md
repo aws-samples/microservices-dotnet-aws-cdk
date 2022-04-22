@@ -4,7 +4,7 @@ This repository contains a sample implementation of Fanout Architecture using .N
 
 ## Architecture
 
-![TODO: add Image here](./.github/docs/imgs/CDK-Architecture-ECS-Fargate.jpg)
+![Architecture Diagram](./.github/docs/imgs/microservices-dotnet-aws-cdk-CDK-Architecture-ECS-Fargate.jpg)
 
 **Componets:**
 
@@ -40,7 +40,8 @@ This repository contains two paths for deployment: **[Script deployment](#script
 
 This path is for those not interested in the details of the steps executed to deploy the solution. You can run the script as instructed below and jump into the test.
 
-For: [Linux & MacOS]
+For: [Linux & macOS]
+
 ```bash
 ./deploy.sh
 ```
@@ -51,7 +52,7 @@ For: [Windows]
 .\deploy.ps1
 ```
 
-After completing the deployment, you can copy the printed URL like <http://WebAp-demos-XXXXXXXXXXXX-9999999999.us-west-2.elb.amazonaws.com> and jumpt to test
+After completing the deployment, you can copy the printed URL like <http://WebAp-demos-XXXXXXXXXXXX-9999999999.us-west-2.elb.amazonaws.com> and jump to test
 
 ### **Step-by-Step deployment**
 
@@ -59,7 +60,7 @@ This path is for those who want to execute step-by-step to learn and see each st
 
 Run the following commands:
 
-#### Deploy WebAPI microservice
+#### Deploy Web API microservice
 
 ```bash
 cd WebAPI/src/infra/ 
@@ -72,14 +73,14 @@ cd -
 
 This is what you just did:
 
-1. Navigated to the CDK project folder for the WebAPI;
-2. Bootstrap your environment, account, and region to run the CDK project;
-3. Synthesize the project to validate the implementation and produce the CloudFormation template to be deployed;
-4. Deploy the CloudFormation Stack after your confirmation;
+1. Navigated to the CDK project folder for the Web API;
+2. Bootstrapped your environment, account, and region to run the CDK project;
+3. Synthesized the project to validate the implementation and produce the CloudFormation template to be deployed;
+4. Deployed the CloudFormation Stack after your confirmation;
 5. Query the VPC ID created from the first Stack and export it to a local environment variable DEMO_VPC_ID
 6. Navigated back to the root folder
 
-#### Deploy the first Worker Services that persist on DynamoDb Table
+#### Deploy the first Worker Services that persist on DynamoDB Table
 
 Run the following commands:
 
@@ -93,8 +94,8 @@ cd -
 This is what you just did:
 
 1. Navigated to the CDK project folder for the Worker Service that persists into DynamoDB
-2. Then synthesize
-3. and deploy the Stack.
+2. Then synthesized
+3. and deployed the Stack.
 4. Navigated back to the root folder
 
 #### Deploy the second Worker Services that persist on S3 Bucket
@@ -111,7 +112,7 @@ cd -
 This is what you just did:
 
 1. Navigated to the CDK project folder for the Worker Service that persists into S3 Bucket
-2. Then synthesize
+2. Then synthesized
 3. and deploy the Stack.
 4. Navigated back to the root folder
 
@@ -125,19 +126,30 @@ aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text 
 
 ## Test the Solution
 
-[TODO: add guide]
+To begin the tests, copy the URL printed by the deployment script. It will look like: “http://WebAp-demos-XXXXXXXX-99999999.us-west-2.elb.amazonaws.com”. Make a POST request to the endpoint http://YOUR_ALB_URL/api/Books using your favorite REST API Client, sending the following JSON payload. You can send multiple requests to have some sample data to visualize the Observability result from AWS CloudWatch console.
+
+```json
+{
+    "Id":"19f38d8d-190d-47d2-bbf5-4b18d820f4a6",
+    "Year" : 2022,
+    "Title": "Demo book payload",
+    "ISBN": 12345612,
+    "Authors": ["Author1", "Author2"],
+    "CoverPage": "picture1.jpg"
+}
+```
 
 ### .NET Observability with X-Ray and CloudWatch
 
-[TODO: Add Observability details]
+To see the results, open the AWS Console and navigate to CloudWatch and select the option Traces from the left navigation menu, then go to the end of the page use one of the Trace ID you got from the POST Result you should see a picture like the one bellow.
+
+!["Observability Result"](./.github/docs/imgs/microservices-dotnet-aws-cdk-observability-result.jpg)
 
 ## Clean up Resources
 
-After exploring this solution, please remember to clean up, here's the script to help cleaning up.
+After exploring this solution, please remember to clean up, here's the script to help clean up.
 
-* Note: if your are using windows, you can run .sh scripts using [Git Bash](https://git-scm.com/downloads)
-
-For: [Linux & MacOS]
+For: [Linux & macOS]
 
 ```bash
 ./clean.sh
@@ -148,12 +160,6 @@ For: [Windows]
 ```PowerShell
 .\clean.ps1
 ```
-
-## Related content
-
-[TODO: add guide]
-
-To learn more about this implementation see the following contents
 
 ## Security
 
