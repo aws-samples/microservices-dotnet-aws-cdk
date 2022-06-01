@@ -106,6 +106,7 @@ namespace InfraSampleWebApp
             _ = new CfnOutput(this, "DemoClusterName", new CfnOutputProps { Value = cluster.ClusterName, ExportName = "DemoClusterName" });
             _ = new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
             _ = new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
+            _ = new CfnOutput(this, "DemoDeployRegion", new CfnOutputProps { Value = this.Region, ExportName = "DemoDeployRegion" });
 
         }
     }

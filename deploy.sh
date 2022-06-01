@@ -6,12 +6,14 @@
 # 3.	Synthesize the project to validate the implementation and produce the CloudFormation template to be deployed; 
 # 4.	Deploy the CloudFormation Stack after your confirmation;
 # 5.    Query the VPC ID created from the first Stack and export it to a local environment variable DEMO_VPC_ID 
-# 6.    Navigate back to the root folder 
+# 6.    Query the DemoDeployRegion created from the first Stack and export it to a local environment variable CDK_DEPLOY_REGION 
+# 7.    Navigate back to the root folder 
 cd WebAPI/src/infra/ \
 && cdk bootstrap \
 && cdk synth \
 && cdk deploy --require-approval never\
 && export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]') \
+&& export CDK_DEPLOY_REGION=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoDeployRegion`].OutputValue  | [0]') \
 && cd -
 
 
