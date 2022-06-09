@@ -30,8 +30,10 @@ namespace InfraWorkerDb
                 /**/
                 Env = new Amazon.CDK.Environment
                 {
-                    Account = System.Environment.GetEnvironmentVariable("CDK_DEFAULT_ACCOUNT"),
-                    Region = "us-west-2",
+                    Account = System.Environment.GetEnvironmentVariable("CDK_DEPLOY_ACCOUNT") ??
+                              System.Environment.GetEnvironmentVariable("CDK_DEFAULT_ACCOUNT"),
+                    Region = System.Environment.GetEnvironmentVariable("CDK_DEPLOY_REGION") ??
+                             System.Environment.GetEnvironmentVariable("CDK_DEFAULT_REGION")
                 }
 
                 // For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
