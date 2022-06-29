@@ -130,7 +130,6 @@ To begin the tests, copy the URL printed by the deployment script. It will look 
 
 ```json
 {
-    "Id":"19f38d8d-190d-47d2-bbf5-4b18d820f4a6",
     "Year" : 2022,
     "Title": "Demo book payload",
     "ISBN": 12345612,
