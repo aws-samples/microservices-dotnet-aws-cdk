@@ -148,13 +148,13 @@ To see the results, open the AWS Console and navigate to CloudWatch and select t
 
 After exploring this solution, please remember to clean up, here's the script to help clean up.
 
-For: [Linux & macOS]
+Using: [Bash]
 
 ```bash
 ./clean.sh
 ```
 
-For: [Windows]
+Using: [PowerShell]
 
 ```PowerShell
 .\clean.ps1

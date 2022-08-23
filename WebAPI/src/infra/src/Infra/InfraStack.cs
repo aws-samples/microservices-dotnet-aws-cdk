@@ -11,6 +11,7 @@ using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Constructs;
+using Amazon.CDK.AWS.ApplicationAutoScaling;
 
 namespace InfraSampleWebApp
 {
@@ -85,6 +86,19 @@ namespace InfraSampleWebApp
                 },
             });
 
+            //Autoscaling
+            var scalableTarget = albFargateSvc.Service.AutoScaleTaskCount(new EnableScalingProps
+            {
+                MinCapacity = 1,
+                MaxCapacity = 10,
+            });
+
+            scalableTarget.ScaleOnCpuUtilization("CpuScaling", new Amazon.CDK.AWS.ECS.CpuUtilizationScalingProps
+            {
+                TargetUtilizationPercent = 60
+            });
+
+
             //Grant permission to Publish on the SNS Topic
             topic.GrantPublish(albFargateSvc.Service.TaskDefinition.TaskRole);
 
@@ -107,6 +121,7 @@ namespace InfraSampleWebApp
             _ = new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
             _ = new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
             _ = new CfnOutput(this, "DemoDeployRegion", new CfnOutputProps { Value = this.Region, ExportName = "DemoDeployRegion" });
+            _ = new CfnOutput(this, "demoserviceServiceURLEndpoint", new CfnOutputProps { Value = $"http://{albFargateSvc.LoadBalancer.LoadBalancerDnsName}/api/Books", ExportName = "demoserviceServiceURLEndpoint" });
 
         }
     }
