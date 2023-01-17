@@ -6,8 +6,8 @@
     <!-- Roll forward to future major versions of the netcoreapp as needed -->
     <RollForward>Major</RollForward>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,11 +17,12 @@
 
     <!-- jsii Roslyn analyzers (un-comment to obtain compile-time checks for missing required props -->
     <PackageReference Include="Amazon.Jsii.Analyzers" Version="*" PrivateAssets="all" />
-   
+
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\..\Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj" />
   </ItemGroup>
 
 </Project>

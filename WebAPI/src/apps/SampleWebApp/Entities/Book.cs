@@ -5,7 +5,8 @@ using System.Text.Json.Serialization;
 namespace SampleWebApp.Entities;
 public class Book
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; } = Guid.NewGuid();
+
     public string Title { get; set; }
 
     public int ISBN { get; set; }

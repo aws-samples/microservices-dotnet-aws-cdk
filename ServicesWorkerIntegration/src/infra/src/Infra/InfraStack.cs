@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Amazon.CDK;
+using Amazon.CDK.AWS.ApplicationAutoScaling;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
@@ -87,10 +88,35 @@ namespace InfraWorkerIntegration
                 StreamPrefix = "ecs/worker-integration"
             });
 
+            //Autoscaling
+            // See: https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html
+            var autoscalingSteps = new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval[]{
+                    //Step adjustments for scale-out policy
+                    new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                        Lower = 0,
+                        Upper = 10,
+                        Change = 0
+                    },
+                    new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                        Lower = 20,
+                        Upper = null,
+                        Change = 3
+                    },
+                    //Step adjustments for scale-in policy
+                    new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                        Lower = null,
+                        Upper = -20,
+                        Change = -3
+                    }
+                };
+
             //Level 3 Construct for SQS Queue processing
             var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services", new QueueProcessingFargateServiceProps
             {
                 Queue = workerIntegrationQueue,
+                MinScalingCapacity = 1,
+                MaxScalingCapacity = 100,
+                ScalingSteps = autoscalingSteps,
                 Cpu = 256,
                 MemoryLimitMiB = 512,
                 Cluster = cluster,
@@ -103,6 +129,8 @@ namespace InfraWorkerIntegration
                         },
                 LogDriver = logDriver
             });
+
+
 
             //Grant permission to S3 Bucket and SQS to consume message from the Queue
             bucket.GrantWrite(queueFargateSvc.TaskDefinition.TaskRole);

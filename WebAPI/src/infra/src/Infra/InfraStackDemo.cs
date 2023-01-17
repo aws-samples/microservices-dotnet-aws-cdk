@@ -11,12 +11,13 @@ using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.SNS;
 using Constructs;
+using Amazon.CDK.AWS.ApplicationAutoScaling;
 
 namespace InfraSampleWebApp
 {
-    public class InfraStack : Stack
+    public class InfraStackDemo : Stack
     {
-        internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal InfraStackDemo(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             const string XRAY_DEAMON = "xray-daemon";
             const string CW_AGET = "cwagent";
@@ -28,7 +29,7 @@ namespace InfraSampleWebApp
             var vpc = new Vpc(this, "demo-vpc", new VpcProps
             {
                 Cidr = "172.30.0.0/16",
-                MaxAzs = 3,
+                MaxAzs = 3
             });
 
             var cluster = new Cluster(this, "demo-cluster", new ClusterProps
@@ -85,6 +86,19 @@ namespace InfraSampleWebApp
                 },
             });
 
+            //Autoscaling
+            var scalableTarget = albFargateSvc.Service.AutoScaleTaskCount(new EnableScalingProps
+            {
+                MinCapacity = 1,
+                MaxCapacity = 10,
+            });
+
+            scalableTarget.ScaleOnCpuUtilization("CpuScaling", new Amazon.CDK.AWS.ECS.CpuUtilizationScalingProps
+            {
+                TargetUtilizationPercent = 60
+            });
+
+
             //Grant permission to Publish on the SNS Topic
             topic.GrantPublish(albFargateSvc.Service.TaskDefinition.TaskRole);
 
@@ -107,6 +121,7 @@ namespace InfraSampleWebApp
             _ = new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
             _ = new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
             _ = new CfnOutput(this, "DemoDeployRegion", new CfnOutputProps { Value = this.Region, ExportName = "DemoDeployRegion" });
+            _ = new CfnOutput(this, "demoserviceServiceURLEndpoint", new CfnOutputProps { Value = $"http://{albFargateSvc.LoadBalancer.LoadBalancerDnsName}/api/Books", ExportName = "demoserviceServiceURLEndpoint" });
 
         }
     }

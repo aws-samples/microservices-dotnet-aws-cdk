@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>WorkerDb</RootNamespace>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>

@@ -51,5 +51,5 @@ echo "#############################################################"
 echo "#                        the WebAPI URL                     #"
 echo "#############################################################"
 echo -e "\n"
-echo $(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`demoserviceServiceURL`)].OutputValue  | [0]')
+echo $(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`demoserviceServiceURLEndpoint`)].OutputValue  | [0]')
 echo -e "\n\n"

@@ -90,13 +90,35 @@ namespace InfraWorkerDb
                 StreamPrefix = "ecs/worker-db"
             });
 
+            //Autoscaling
+            // See: https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html
+            var autoscalingSteps = new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval[]{
+                    //Step adjustments for scale-out policy
+                    new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                        Lower = 0,
+                        Upper = 10,
+                        Change = 0
+                    },
+                     new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                        Lower = 20,
+                        Upper = null,
+                        Change = 3
+                    },
+                     new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                        Lower = null,
+                        Upper = -20,
+                        Change = -3
+                    },
+                };
+
             //Level 3 Construct for SQS Queue processing
             var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services-db", new QueueProcessingFargateServiceProps
             {
                 Cluster = cluster,
                 Queue = workerDbQueue,
-                MinScalingCapacity = 3,
-                MaxScalingCapacity = 10,
+                MinScalingCapacity = 1,
+                MaxScalingCapacity = 100,
+                ScalingSteps = autoscalingSteps,
                 Cpu = 256,
                 MemoryLimitMiB = 512,
                 Image = ContainerImage.FromDockerImageAsset(asset),
