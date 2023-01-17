@@ -15,9 +15,9 @@ using Amazon.CDK.AWS.ApplicationAutoScaling;
 
 namespace InfraSampleWebApp
 {
-    public class InfraStack : Stack
+    public class InfraStackDemo : Stack
     {
-        internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal InfraStackDemo(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             const string XRAY_DEAMON = "xray-daemon";
             const string CW_AGET = "cwagent";
@@ -29,7 +29,7 @@ namespace InfraSampleWebApp
             var vpc = new Vpc(this, "demo-vpc", new VpcProps
             {
                 Cidr = "172.30.0.0/16",
-                MaxAzs = 3,
+                MaxAzs = 3
             });
 
             var cluster = new Cluster(this, "demo-cluster", new ClusterProps

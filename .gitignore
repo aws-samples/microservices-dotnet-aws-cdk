@@ -266,3 +266,4 @@ yarn-error.log*
 cdk.context.json
 .cdk.staging
 cdk.out
+WebAPI/src/infra/output.yaml
