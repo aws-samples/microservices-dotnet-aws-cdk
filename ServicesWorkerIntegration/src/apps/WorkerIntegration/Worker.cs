@@ -104,7 +104,11 @@ public class Worker : BackgroundService
             //Create Segment with Propagated TraceId
             var tracerAtt = msgItem.Attributes.GetValueOrDefault("AWSTraceHeader");
             TraceHeader traceInfo = TraceHeader.FromString(tracerAtt);
-            AWSXRayRecorder.Instance.BeginSegment(MY_SERVICE_NAME, traceInfo.RootTraceId, traceInfo.ParentId, new SamplingResponse(traceInfo.Sampled));
+            AWSXRayRecorder.Instance.BeginSegment(MY_SERVICE_NAME, samplingResponse: new SamplingResponse(traceInfo.Sampled));
+            var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
+            propagatedSegment.TraceId = traceInfo.RootTraceId;
+            propagatedSegment.ParentId = traceInfo.ParentId;
+            AWSXRayRecorder.Instance.SetEntity(propagatedSegment);
 
             await PerformCRUDOperations(msgItem);
 
@@ -120,7 +124,7 @@ public class Worker : BackgroundService
             var elapsedMs = watch.ElapsedMilliseconds;
 
             //Close/Submmit Segment with Propagated TraceId
-            var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
+            //var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
             AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
             AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
 
