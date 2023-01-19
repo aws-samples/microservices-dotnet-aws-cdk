@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+// #pragma warning disable CA1506
 using Amazon.CloudWatch.EMF.Web;
 using Amazon.SimpleNotificationService;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
@@ -66,7 +67,7 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
     endpoints.MapGet("/", async context =>
     {
-        await context.Response.WriteAsync("Demo .NET Microservices v2");
+        await context.Response.WriteAsync("Demo .NET Microservices v2").ConfigureAwait(true);
     });
 });
 

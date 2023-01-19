@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/WebAPI/src/apps/SampleWebApp/SampleWebApp.csproj",
+                "${workspaceFolder}/DemoSolution.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

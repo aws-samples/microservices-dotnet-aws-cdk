@@ -2,6 +2,7 @@ using Amazon.XRay.Recorder.Core;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
+using System.Runtime.InteropServices;
 
 namespace SampleWebApp.AppLogger;
 
@@ -10,6 +11,7 @@ namespace SampleWebApp.AppLogger;
 /// </summary>
 public class XrayCustomFormatter : ConsoleFormatter, IDisposable
 {
+    private bool isDisposed;
     private readonly string _padding = " ";
     private readonly IDisposable _optionsReloadToken;
     private XrayCustomFormatterOptions _formatterOptions;
@@ -17,7 +19,7 @@ public class XrayCustomFormatter : ConsoleFormatter, IDisposable
     public XrayCustomFormatter(IOptionsMonitor<XrayCustomFormatterOptions> options)
         : base(nameof(XrayCustomFormatter)) =>
         (_optionsReloadToken, _formatterOptions) =
-            (options.OnChange(ReloadLoggerOptions), options.CurrentValue);
+            (options.OnChange(ReloadLoggerOptions), options?.CurrentValue);
 
     private void ReloadLoggerOptions(XrayCustomFormatterOptions options) =>
         _formatterOptions = options;
@@ -32,7 +34,7 @@ public class XrayCustomFormatter : ConsoleFormatter, IDisposable
             logEntry.Formatter(
                 logEntry.State, logEntry.Exception);
 
-        if (message == null)
+        if (message == null || textWriter == null)
         {
             return;
         }
@@ -50,7 +52,9 @@ public class XrayCustomFormatter : ConsoleFormatter, IDisposable
         if (logEntry.Exception != null)
         {
             textWriter.Write("Exception: ");
-            string newMessage = logEntry.Exception.ToString().Replace(Environment.NewLine, " ");
+            string newMessage = logEntry.Exception
+                                         .ToString()?
+                                         .Replace(Environment.NewLine, " ", StringComparison.Ordinal);
             textWriter.Write(newMessage);
         }
 
@@ -80,5 +84,24 @@ public class XrayCustomFormatter : ConsoleFormatter, IDisposable
         };
     }
 
-    public void Dispose() => _optionsReloadToken?.Dispose();
+    // Dispose() calls Dispose(true)
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    // The bulk of the clean-up code is implemented in Dispose(bool)
+    protected virtual void Dispose(bool disposing)
+    {
+        if (isDisposed) return;
+
+        if (disposing)
+        {
+            _optionsReloadToken?.Dispose();
+        }
+
+        isDisposed = true;
+    }
+
 }

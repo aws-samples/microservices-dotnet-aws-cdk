@@ -73,7 +73,7 @@ public class BooksController : ControllerBase
         //Book's Authors
         dimensionSet.AddDimension("Authors", string.Join(",", book.BookAuthors));
         //Book's Year
-        dimensionSet.AddDimension("Year", book.Year.ToString());
+        dimensionSet.AddDimension("Year", $"{book.Year}");
         _metrics.SetDimensions(dimensionSet);
 
         _metrics.PutMetric("PublishedMessageCount", 1, Unit.COUNT);

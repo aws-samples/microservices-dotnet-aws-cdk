@@ -3,23 +3,25 @@
 using System.Collections.Generic;
 using System.IO;
 using Amazon.CDK;
-using Amazon.CDK.AWS.DynamoDB;
+using Amazon.CDK.AWS.ApplicationAutoScaling;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.Ecr.Assets;
 using Amazon.CDK.AWS.ECS;
+using Amazon.CDK.AWS.ECS.MyExtensions;
 using Amazon.CDK.AWS.ECS.Patterns;
+using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Logs;
+using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
 using Amazon.CDK.AWS.SQS;
 using Constructs;
-using Amazon.CDK.AWS.ECS.MyExtensions;
 
-namespace InfraWorkerDb
+namespace InfraWorkerIntegration
 {
-    public class InfraStack : Stack
+    public class InfraStackDemo : Stack
     {
-        internal InfraStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal InfraStackDemo(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             const string XRAY_DEAMON = "xray-daemon";
             const string CW_AGET = "cwagent";
@@ -28,7 +30,7 @@ namespace InfraWorkerDb
             //this will clean all resources when you cdk destroy
             var cleanUpRemovePolicy = RemovalPolicy.DESTROY;
 
-            //Import Resources from other Stack and Local env
+            //Import Resources
             var importedSnsArn = Fn.ImportValue("DemoSnsTopicArn");
             var importedClusterName = Fn.ImportValue("DemoClusterName");
             var importedLogGroupName = Fn.ImportValue("DemoLogGroupName");
@@ -45,49 +47,45 @@ namespace InfraWorkerDb
             {
                 Vpc = vpc,
                 ClusterName = importedClusterName,
-                SecurityGroups = new SecurityGroup[] { }
+                SecurityGroups = System.Array.Empty<SecurityGroup>()
             });
 
             //Import SNS Topic created from other Stack
             var topic = Topic.FromTopicArn(this, "imported-topic", importedSnsArn);
 
-            //Create SQS for Worker APP that persist data on DynamoDb
-            var workerDbQueue = new Queue(this, "worker-db-queue", new QueueProps
+            //SQS for Worker APP that persist data on s3
+            var workerIntegrationQueue = new Queue(this, "worker-integration-queue", new QueueProps
             {
-                QueueName = "worker-db-queue",
-                RemovalPolicy = cleanUpRemovePolicy
-            });
-
-            //Grant Permission & Subscribe SNS Topic
-            topic.AddSubscription(new SqsSubscription(workerDbQueue));
-
-            //Create DynamoDb Table
-            Table table = new Table(this, "Table", new TableProps
-            {
+                QueueName = "worker-integration-queue",
                 RemovalPolicy = cleanUpRemovePolicy,
-                TableName = "BooksCatalog",
-                PartitionKey = new Attribute { Name = "Id", Type = AttributeType.STRING },
-                Encryption = TableEncryption.AWS_MANAGED
+                Encryption = QueueEncryption.KMS
             });
-            //Configure AutoScaling for DynamoDb Table
-            IScalableTableAttribute readScaling = table.AutoScaleReadCapacity(new EnableScalingProps { MinCapacity = 1, MaxCapacity = 50 });
-            readScaling.ScaleOnUtilization(new UtilizationScalingProps
+
+            //Grant Permission & Subscribe
+            topic.AddSubscription(new SqsSubscription(workerIntegrationQueue));
+
+            //S3 Bucket
+            var bucket = new Bucket(this, "demo-bucket", new BucketProps
             {
-                TargetUtilizationPercent = 75
+                Encryption = BucketEncryption.KMS,
+                EnforceSSL = true,
+                BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
+                RemovalPolicy = cleanUpRemovePolicy,
+                AutoDeleteObjects = true //Set to false for Real Env, this is only set for demo cleanup propose
             });
 
             //Build docker container and publish to ECR
-            var asset = new DockerImageAsset(this, "worker-db-image", new DockerImageAssetProps
+            var asset = new DockerImageAsset(this, "worker-integration-image", new DockerImageAssetProps
             {
-                Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerDb"),
-                File = "Dockerfile"
+                Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerIntegration"),
+                File = "Dockerfile",
             });
 
             //Create logDrive to reuse the same AWS CloudWatch Log group created from the other Stack
             var logDriver = LogDriver.AwsLogs(new AwsLogDriverProps
             {
                 LogGroup = LogGroup.FromLogGroupName(this, "imported-loggroup", importedLogGroupName),
-                StreamPrefix = "ecs/worker-db"
+                StreamPrefix = "ecs/worker-integration"
             });
 
             //Autoscaling
@@ -99,43 +97,44 @@ namespace InfraWorkerDb
                         Upper = 10,
                         Change = 0
                     },
-                     new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                    new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
                         Lower = 20,
                         Upper = null,
                         Change = 3
                     },
-                     new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
+                    //Step adjustments for scale-in policy
+                    new Amazon.CDK.AWS.ApplicationAutoScaling.ScalingInterval{
                         Lower = null,
                         Upper = -20,
                         Change = -3
-                    },
+                    }
                 };
 
             //Level 3 Construct for SQS Queue processing
-            var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services-db", new QueueProcessingFargateServiceProps
+            var queueFargateSvc = new QueueProcessingFargateService(this, "queue-fargate-services", new QueueProcessingFargateServiceProps
             {
-                Cluster = cluster,
-                Queue = workerDbQueue,
+                Queue = workerIntegrationQueue,
                 MinScalingCapacity = 1,
                 MaxScalingCapacity = 100,
                 ScalingSteps = autoscalingSteps,
                 Cpu = 256,
                 MemoryLimitMiB = 512,
+                Cluster = cluster,
                 Image = ContainerImage.FromDockerImageAsset(asset),
                 Environment = new Dictionary<string, string>()
                         {
-                            {"WORKER_QUEUE_URL", workerDbQueue.QueueUrl },
-                            {"AWS_REGION", this.Region},
-                            {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" },
-                            {"EMF_LOG_GROUP_NAME", importedLogGroupName }
+                            {"WORKER_QUEUE_URL", workerIntegrationQueue.QueueUrl },
+                            {"WORKER_BUCKET_NAME", bucket.BucketName},
+                            {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" }
                         },
                 LogDriver = logDriver
             });
 
-            //Grant permission to DynamoDB table and SQS to consume message from the Queue
-            table.GrantWriteData(queueFargateSvc.TaskDefinition.TaskRole);
-            table.Grant(queueFargateSvc.TaskDefinition.TaskRole, "dynamodb:DescribeTable");
-            workerDbQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
+
+
+            //Grant permission to S3 Bucket and SQS to consume message from the Queue
+            bucket.GrantWrite(queueFargateSvc.TaskDefinition.TaskRole);
+            workerIntegrationQueue.GrantConsumeMessages(queueFargateSvc.TaskDefinition.TaskRole);
 
             //Custom shared C# Library (reusability of code)
             queueFargateSvc.Service.TaskDefinition
@@ -148,6 +147,11 @@ namespace InfraWorkerDb
                     AgentContainerName = CW_AGET,
                     LogDriver = logDriver,
                 });
+
+            //Grant permission to write X-Ray segments
+            queueFargateSvc.Service.TaskDefinition.TaskRole
+                .AddManagedPolicy(ManagedPolicy.FromAwsManagedPolicyName("AWSXRayDaemonWriteAccess"));
+
         }
     }
 }
