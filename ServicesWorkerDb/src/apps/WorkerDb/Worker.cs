@@ -43,7 +43,7 @@ public class Worker : BackgroundService
             try
             {
                 var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
-                _logger.LogDebug("Message ID: {messageId}", messageId);
+                _logger.LogInformation("Message ID: {messageId}", messageId);
             }
             catch (Exception ex)
             {

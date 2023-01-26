@@ -13,7 +13,7 @@ public class Book
     public int ISBN { get; set; }
 
     [JsonPropertyName("Authors")]
-    public ReadOnlyCollection<string> BookAuthors { get; set; }
+    public IList<string> BookAuthors { get; set; }
     public string CoverPage { get; set; }
 
     public short Year { get; set; }
