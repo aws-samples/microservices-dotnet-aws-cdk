@@ -22,7 +22,7 @@ namespace InfraWorkerDb
     {
         internal InfraStackDemo(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            const string XRAY_DEAMON = "xray-daemon";
+            const string XRAY_DAEMON = "xray-daemon";
             const string CW_AGET = "cwagent";
 
             //Note: For demo' cleanup propose, this Sample Code will set RemovalPolicy == DESTROY
@@ -127,7 +127,7 @@ namespace InfraWorkerDb
                         {
                             {"WORKER_QUEUE_URL", workerDbQueue.QueueUrl },
                             {"AWS_REGION", this.Region},
-                            {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DEAMON}:2000" },
+                            {"AWS_XRAY_DAEMON_ADDRESS",$"{XRAY_DAEMON}:2000" },
                             {"EMF_LOG_GROUP_NAME", importedLogGroupName }
                         },
                 LogDriver = logDriver
@@ -140,9 +140,9 @@ namespace InfraWorkerDb
 
             //Custom shared C# Library (reusability of code)
             queueFargateSvc.Service.TaskDefinition
-                .AddXRayDeamon(new XRayDeamonProps
+                .AddXRayDaemon(new XRayDaemonProps
                 {
-                    XRayDeamonContainerName = XRAY_DEAMON,
+                    XRayDaemonContainerName = XRAY_DAEMON,
                     LogDriver = logDriver
                 }).AddCloudWatchAgent(new CloudWatchAgentProps
                 {

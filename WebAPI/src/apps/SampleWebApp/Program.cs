@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole(options => options.FormatterName = nameof(XrayCustomFormatter))
                 .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>();
-                //.AddJsonConsole();
+//.AddJsonConsole();
 
 // Add services to the container.
 

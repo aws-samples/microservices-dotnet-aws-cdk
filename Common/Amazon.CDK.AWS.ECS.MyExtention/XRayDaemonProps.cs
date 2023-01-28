@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: MIT-0
 namespace Amazon.CDK.AWS.ECS.MyExtensions
 {
-    public class XRayDeamonProps
+    public class XRayDaemonProps
     {
         /// <summary>
         /// Default: xray-daemon
         /// </summary>
-        public string XRayDeamonContainerName { get; set; } = "xray-daemon";
+        public string XRayDaemonContainerName { get; set; } = "xray-daemon";
 
         /// <summary>
         /// Default: null
         /// </summary>
-        public LogDriver LogDriver { get; set; }  = null;
+        public LogDriver LogDriver { get; set; } = null;
     }
 }

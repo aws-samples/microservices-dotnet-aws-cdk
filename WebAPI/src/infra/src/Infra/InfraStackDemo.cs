@@ -19,7 +19,7 @@ namespace InfraSampleWebApp
     {
         internal InfraStackDemo(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            const string XRAY_DEAMON = "xray-daemon";
+            const string XRAY_DAEMON = "xray-daemon";
             const string CW_AGET = "cwagent";
 
             //Note: For demo' cleanup propose, this Sample Code will set RemovalPolicy == DESTROY
@@ -105,9 +105,9 @@ namespace InfraSampleWebApp
 
             //Custom shared C# Library (reusability of code)
             albFargateSvc.Service.TaskDefinition
-                .AddXRayDeamon(new XRayDeamonProps
+                .AddXRayDaemon(new XRayDaemonProps
                 {
-                    XRayDeamonContainerName = XRAY_DEAMON,
+                    XRayDaemonContainerName = XRAY_DAEMON,
                     LogDriver = logDriver
                 }).AddCloudWatchAgent(new CloudWatchAgentProps
                 {

@@ -1,5 +1,6 @@
 ﻿// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+#pragma warning disable CA2007
 using Microsoft.AspNetCore.Mvc;
 using SampleWebApp.Entities;
 using Amazon.SimpleNotificationService;
@@ -64,7 +65,7 @@ public class BooksController : ControllerBase
         return $"TraceId: {traceId}";
     }
 
-    private void EmitMetrics(Book book, string traceId,long processingTimeMilliseconds)
+    private void EmitMetrics(Book book, string traceId, long processingTimeMilliseconds)
     {
         //Add dimentions
         var dimensionSet = new DimensionSet();

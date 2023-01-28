@@ -1,5 +1,6 @@
 ﻿// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+#pragma warning disable CA2227
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 

@@ -9,19 +9,19 @@ namespace Amazon.CDK.AWS.ECS.MyExtensions
     {
 
         /// <summary>
-        /// Add Sidecar container with X-Ray deamon 
+        /// Add Sidecar container with X-Ray daemon 
         /// to gathers raw segment data, and relays it to the AWS X-Ray API.
         /// learn more at <see href="https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon.html" />
         /// </summary>
         /// <param name="taskDefinition"></param>
-        /// <param name="xRayDeamonProps"></param>
+        /// <param name="xRayDaemonProps"></param>
         /// <returns></returns>
-        public static TaskDefinition AddXRayDeamon(this TaskDefinition taskDefinition, XRayDeamonProps xRayDeamonProps)
+        public static TaskDefinition AddXRayDaemon(this TaskDefinition taskDefinition, XRayDaemonProps xRayDaemonProps)
         {
 
-            taskDefinition.AddContainer("x-ray-deamon", new ContainerDefinitionOptions
+            taskDefinition.AddContainer("x-ray-daemon", new ContainerDefinitionOptions
             {
-                ContainerName = xRayDeamonProps.XRayDeamonContainerName,
+                ContainerName = xRayDaemonProps.XRayDaemonContainerName,
                 Cpu = 32,
                 MemoryLimitMiB = 256,
                 PortMappings = new PortMapping[]{
@@ -30,7 +30,7 @@ namespace Amazon.CDK.AWS.ECS.MyExtensions
                         Protocol = Protocol.UDP
                     }},
                 Image = ContainerImage.FromRegistry("public.ecr.aws/xray/aws-xray-daemon:latest"),
-                Logging = xRayDeamonProps.LogDriver
+                Logging = xRayDaemonProps.LogDriver
             });
 
             //Grant permission to write X-Ray segments
