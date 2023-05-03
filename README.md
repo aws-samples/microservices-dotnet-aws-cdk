@@ -4,7 +4,7 @@ This repository contains a sample implementation of Fanout Architecture using .N
 
 ## Architecture
 
-![Architecture Diagram](./.github/docs/imgs/microservices-dotnet-aws-cdk-CDK-Architecture-ECS-Fargate.jpg)
+![Architecture Diagram](./.github/docs/imgs/microservices-dotnet-aws-cdk-CDK-Architecture-ECS-Fargate.svg)
 
 **Componets:**
 
