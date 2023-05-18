@@ -6,6 +6,9 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <UserSecretsId>3c1bd663-0590-4c10-9604-cf1c318f4645</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +16,7 @@
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.2" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.3.47" />
     <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
     <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.1.139" />
   </ItemGroup>
