@@ -34,19 +34,17 @@ Before exploring the code, please ensure you have the following tools to deploy 
 * [_Docker_](https://docs.docker.com/engine/install/)
 * [_VSCode_ _(or your preferred IDE)_](https://code.visualstudio.com/)
 
-This repository contains two paths for deployment: **[Script deployment](#script-deployment)** and **[Step-by-step deployment](#step-by-step-deployment)**"
-
 ### **Deployment Script**
 
 This path is for those not interested in the details of the steps executed to deploy the solution. You can run the script as instructed below and jump into the test.
 
-For: [Linux & macOS]
+For: [Bash]
 
 ```bash
 ./deploy.sh
 ```
 
-For: [Windows]
+For: [Powershel]
 
 ```PowerShell
 .\deploy.ps1
@@ -54,75 +52,6 @@ For: [Windows]
 
 After completing the deployment, you can copy the printed URL like <http://WebAp-demos-XXXXXXXXXXXX-9999999999.us-west-2.elb.amazonaws.com> and jump to test
 
-### **Step-by-Step deployment**
-
-This path is for those who want to execute step-by-step to learn and see each step's results before continuing to the topic [**Test the Solution**](#test-the-solution).
-
-Run the following commands:
-
-#### Deploy Web API microservice
-
-```bash
-cd WebAPI/src/infra/ 
-cdk bootstrap 
-cdk synth 
-cdk deploy
-export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]') 
-cd -
-```
-
-This is what you just did:
-
-1. Navigated to the CDK project folder for the Web API;
-2. Bootstrapped your environment, account, and region to run the CDK project;
-3. Synthesized the project to validate the implementation and produce the CloudFormation template to be deployed;
-4. Deployed the CloudFormation Stack after your confirmation;
-5. Query the VPC ID created from the first Stack and export it to a local environment variable DEMO_VPC_ID
-6. Navigated back to the root folder
-
-#### Deploy the first Worker Services that persist on DynamoDB Table
-
-Run the following commands:
-
-```bash
-cd ServicesWorkerDb/src/infra/ 
-cdk synth
-cdk deploy
-cd -
-```
-
-This is what you just did:
-
-1. Navigated to the CDK project folder for the Worker Service that persists into DynamoDB
-2. Then synthesized
-3. and deployed the Stack.
-4. Navigated back to the root folder
-
-#### Deploy the second Worker Services that persist on S3 Bucket
-
-Run the following commands:
-
-```bash
-cd ServicesWorkerIntegration/src/infra/
-cdk synth
-cdk deploy
-cd -
-```
-
-This is what you just did:
-
-1. Navigated to the CDK project folder for the Worker Service that persists into S3 Bucket
-2. Then synthesized
-3. and deploy the Stack.
-4. Navigated back to the root folder
-
-#### Print the URL for testing
-
-```bash
-aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`demoserviceServiceURL`)].OutputValue  | [0]'
-```
-
-1. This command will show the URL you'll use for testing.
 
 ## Test the Solution
 
