@@ -11,12 +11,12 @@ aws sts get-caller-identity
 # 6.    Query the DemoDeployRegion created from the first Stack and export it to a local environment variable CDK_DEPLOY_REGION 
 # 7.    Navigate back to the root folder 
 Set-Location WebAPI/src/infra/
-    cdk bootstrap
-    cdk synth
-    cdk deploy --require-approval never
-    $Env:DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]')
-    $Env:CDK_DEPLOY_REGION=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoDeployRegion`].OutputValue  | [0]')
-    Set-Location ../../../
+cdk bootstrap
+cdk synth
+cdk deploy --require-approval never
+$Env:DEMO_VPC_ID = $(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]')
+$Env:CDK_DEPLOY_REGION = $(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoDeployRegion`].OutputValue  | [0]')
+Set-Location ../../../
 
 
 #############################################################
@@ -27,9 +27,9 @@ Set-Location WebAPI/src/infra/
 # 3.    and deploy the Stack.
 # 4.    Navigate back to the root folder 
 Set-Location ServicesWorkerDb/src/infra/
-    cdk synth
-    cdk deploy --require-approval never
-    Set-Location ../../../
+cdk synth
+cdk deploy --require-approval never
+Set-Location ../../../
 
 
 #############################################################
@@ -40,9 +40,9 @@ Set-Location ServicesWorkerDb/src/infra/
 # 3.    and deploy the Stack.
 # 4.    Navigate back to the root folder 
 Set-Location ServicesWorkerIntegration/src/infra/ 
-    cdk synth 
-    cdk deploy --require-approval never
-    Set-Location ../../../
+cdk synth 
+cdk deploy --require-approval never
+Set-Location ../../../
 
 
 #############################################################
@@ -53,5 +53,5 @@ Write-Output "#############################################################"
 Write-Output "#                        the WebAPI URL                     #"
 Write-Output "#############################################################"
 Write-Output "`r`n"
-aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`demoserviceServiceURL`)].OutputValue  | [0]'
+aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`DemoServiceServiceURLEndpoint`)].OutputValue  | [0]'
 Write-Output "`r`n"
