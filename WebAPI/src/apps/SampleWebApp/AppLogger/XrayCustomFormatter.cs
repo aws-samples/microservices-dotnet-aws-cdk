@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace SampleWebApp.AppLogger;
 
 /// <summary>
-/// Custom Console Logging Formmater to add AWS X-Ray TraceId as suffix for logs 
+/// Custom Console Logging Formatter to add AWS X-Ray TraceId as suffix for logs 
 /// </summary>
 public class XrayCustomFormatter : ConsoleFormatter, IDisposable
 {

@@ -15,7 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole(options => options.FormatterName = nameof(XrayCustomFormatter))
                 .AddConsoleFormatter<XrayCustomFormatter, XrayCustomFormatterOptions>();
-//.AddJsonConsole();
 
 // Add services to the container.
 
@@ -39,7 +38,7 @@ EMF.Config.EnvironmentConfigurationProvider.Config = new EMF.Config.Configuratio
 {
     ServiceName = MY_SERVICE_NAME,
     ServiceType = "WebApi",
-    LogGroupName = Environment.GetEnvironmentVariable("EMF_LOG_GROUP_NAME"),
+    LogGroupName = Environment.GetEnvironmentVariable("AWS_EMF_LOG_GROUP_NAME"),
     EnvironmentOverride = EMF.Environment.Environments.ECS
 };
 builder.Services.AddEmf();
@@ -60,15 +59,19 @@ app.UseXRay(MY_SERVICE_NAME);
 app.UseRouting();
 
 //Register CloudWatch EMF Middleware
-app.UseEmfMiddleware();
-
-app.UseEndpoints(endpoints =>
+app.UseEmfMiddleware((context, logger) =>
 {
-    endpoints.MapControllers();
-    endpoints.MapGet("/", async context =>
+    if (logger == null)
     {
-        await context.Response.WriteAsync("Demo .NET Microservices v2").ConfigureAwait(true);
-    });
+        return Task.CompletedTask;
+    }
+
+    logger.PutMetadata("MY_SERVICES_INSTANCE", Environment.GetEnvironmentVariable("MY_SERVICES_INSTANCE"));
+    return Task.CompletedTask;
 });
+
+app.MapControllers();
+app.MapGet("/", () => "Demo .NET Microservices v2");
+
 
 app.Run();

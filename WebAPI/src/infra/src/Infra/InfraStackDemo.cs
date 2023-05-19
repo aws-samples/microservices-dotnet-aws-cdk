@@ -28,14 +28,14 @@ namespace InfraSampleWebApp
             // VPC
             var vpc = new Vpc(this, "demo-vpc", new VpcProps
             {
-                Cidr = "172.30.0.0/16",
+                IpAddresses = IpAddresses.Cidr("172.30.0.0/16"),
                 MaxAzs = 3
             });
 
             var cluster = new Cluster(this, "demo-cluster", new ClusterProps
             {
                 Vpc = vpc,
-                ContainerInsights = true,
+                ContainerInsights = true
             });
 
             //ECR
@@ -71,18 +71,20 @@ namespace InfraSampleWebApp
                 Cluster = cluster,
                 MemoryLimitMiB = 1024,
                 Cpu = 512,
+                DesiredCount = 3,
                 TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
                 {
+                    // ContainerImage.FromRegistry("amazon/amazon-ecs-sample"), // 
                     Image = ContainerImage.FromDockerImageAsset(asset),
                     ContainerName = "web",
                     EnableLogging = true,
                     Environment = new Dictionary<string, string>()
                         {
                             {"SNS_TOPIC_ARN", topic.TopicArn },
+                            {"AWS_EMF_LOG_GROUP_NAME", logGroupName },
                             {"ASPNETCORE_URLS","http://+:80"},
-                            {"EMF_LOG_GROUP_NAME", logGroupName }
                         },
-                    LogDriver = logDriver
+                    LogDriver = logDriver,
                 },
             });
 
@@ -121,7 +123,7 @@ namespace InfraSampleWebApp
             _ = new CfnOutput(this, "DemoLogGroupName", new CfnOutputProps { Value = logGroupName, ExportName = "DemoLogGroupName" });
             _ = new CfnOutput(this, "DemoVpcId", new CfnOutputProps { Value = vpc.VpcId, ExportName = "DemoVpcId" });
             _ = new CfnOutput(this, "DemoDeployRegion", new CfnOutputProps { Value = this.Region, ExportName = "DemoDeployRegion" });
-            _ = new CfnOutput(this, "demoserviceServiceURLEndpoint", new CfnOutputProps { Value = $"http://{albFargateSvc.LoadBalancer.LoadBalancerDnsName}/api/Books", ExportName = "demoserviceServiceURLEndpoint" });
+            _ = new CfnOutput(this, "DemoServiceServiceURLEndpoint", new CfnOutputProps { Value = $"http://{albFargateSvc.LoadBalancer.LoadBalancerDnsName}/api/Books", ExportName = "DemoServiceServiceURLEndpoint" });
 
         }
     }

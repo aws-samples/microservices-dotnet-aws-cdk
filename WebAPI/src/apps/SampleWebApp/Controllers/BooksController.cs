@@ -1,6 +1,6 @@
 ﻿// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-#pragma warning disable CA2007
+// #pragma warning disable CA2007
 using Microsoft.AspNetCore.Mvc;
 using SampleWebApp.Entities;
 using Amazon.SimpleNotificationService;
@@ -39,7 +39,7 @@ public class BooksController : ControllerBase
         }
 
         //Add business-specific tracking to measure the execution time for each Post
-        // exluding the http request latency
+        // excluding the http request latency
         // Start timer
         var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -67,7 +67,7 @@ public class BooksController : ControllerBase
 
     private void EmitMetrics(Book book, string traceId, long processingTimeMilliseconds)
     {
-        //Add dimentions
+        //Add Dimensions
         var dimensionSet = new DimensionSet();
         //Unique Id for this WebAPI Instance
         dimensionSet.AddDimension("WebApiInstanceId", Environment.GetEnvironmentVariable("MY_SERVICES_INSTANCE"));

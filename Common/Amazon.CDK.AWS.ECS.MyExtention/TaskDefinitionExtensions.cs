@@ -65,6 +65,10 @@ namespace Amazon.CDK.AWS.ECS.MyExtensions
                     new PortMapping{
                         ContainerPort = 25888,
                         Protocol = Amazon.CDK.AWS.ECS.Protocol.TCP
+                    },
+                    new PortMapping{
+                        ContainerPort = 25888,
+                        Protocol = Amazon.CDK.AWS.ECS.Protocol.UDP
                     }},
                     Image = ContainerImage.FromRegistry("public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest"),
                     Environment = new Dictionary<string, string>()
