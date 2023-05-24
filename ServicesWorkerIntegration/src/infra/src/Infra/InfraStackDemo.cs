@@ -79,6 +79,7 @@ namespace InfraWorkerIntegration
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerIntegration"),
                 File = "Dockerfile",
+                Platform = Platform_.LINUX_ARM64,
             });
 
             //Create logDrive to reuse the same AWS CloudWatch Log group created from the other Stack

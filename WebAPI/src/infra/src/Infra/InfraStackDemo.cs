@@ -43,7 +43,8 @@ namespace InfraSampleWebApp
             var asset = new DockerImageAsset(this, "web-app-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/SampleWebApp"),
-                File = "Dockerfile"
+                File = "Dockerfile",
+                Platform = Platform_.LINUX_ARM64,
             });
 
             //SNS Topic

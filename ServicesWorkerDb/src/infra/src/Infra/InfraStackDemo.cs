@@ -81,7 +81,8 @@ namespace InfraWorkerDb
             var asset = new DockerImageAsset(this, "worker-db-image", new DockerImageAssetProps
             {
                 Directory = Path.Combine(Directory.GetCurrentDirectory(), "../../src/apps/WorkerDb"),
-                File = "Dockerfile"
+                File = "Dockerfile",
+                Platform = Platform_.LINUX_ARM64,
             });
 
             //Create logDrive to reuse the same AWS CloudWatch Log group created from the other Stack
