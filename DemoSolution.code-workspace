@@ -1,6 +1,10 @@
 {
     "folders": [
         {
+            "name": "Common",
+            "path": "Common/Amazon.CDK.AWS.ECS.MyExtention"
+        },
+        {
             "name": "WorkerDb",
             "path": "ServicesWorkerDb/src/apps/WorkerDb"
         },

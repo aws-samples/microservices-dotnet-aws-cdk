@@ -43,7 +43,8 @@ public class Worker : BackgroundService
             try
             {
                 var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
-                _logger.LogInformation("Message ID: {messageId}", messageId);
+                var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
+                _logger.LogInformation("Message ID: {messageId}, TraceId: {TraceId}", messageId, traceEntity.TraceId);
             }
             catch (System.Exception ex)
             {

@@ -53,7 +53,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SampleWebApp v1"));
 }
 
-//X-Ray
+//Initialize X-Ray
 app.UseXRay(MY_SERVICE_NAME);
 
 app.UseRouting();
