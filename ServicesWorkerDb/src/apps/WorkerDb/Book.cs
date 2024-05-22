@@ -3,6 +3,7 @@
 using Amazon.DynamoDBv2.DataModel;
 using System.Text.Json.Serialization;
 
+namespace WorkerDb;
 
 /// <summary>
 /// A class representing book information to be added to the Amazon DynamoDB

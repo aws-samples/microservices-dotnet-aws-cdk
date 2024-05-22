@@ -37,14 +37,17 @@ public class Worker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             AWSXRayRecorder.Instance.BeginSegment(MY_SERVICE_NAME);
-            _logger.LogDebug("Worker running at: {time}", DateTimeOffset.Now);
-            _logger.LogDebug("The SQS queue's URL is {queueUrl}", queueUrl);
+            _logger.LogDebug("Worker running at: {Time}", DateTimeOffset.Now);
+            _logger.LogDebug("The SQS queue's URL is {QueueUrl}", queueUrl);
 
             try
             {
                 var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
                 var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
-                _logger.LogInformation("Message ID: {messageId}, TraceId: {TraceId}", messageId, traceEntity.TraceId);
+                _logger.LogInformation("Message ID: {MessageId}, TraceId: {TraceId}",
+                        messageId,
+                        traceEntity.TraceId
+                    );
             }
             catch (Exception ex)
             {
@@ -85,7 +88,7 @@ public class Worker : BackgroundService
         // Receive a single message from the queue. 
         var receiveMessageRequest = new ReceiveMessageRequest
         {
-            AttributeNames = { "All" },
+            MessageSystemAttributeNames = { "All" },
             MaxNumberOfMessages = 10,
             MessageAttributeNames = { "All" },
             QueueUrl = queueUrl,
@@ -128,7 +131,6 @@ public class Worker : BackgroundService
             var elapsedMs = watch.ElapsedMilliseconds;
 
             //Close/Submmit Segment with Propagated TraceId
-            // var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
             AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
             AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
 
@@ -139,7 +141,7 @@ public class Worker : BackgroundService
             EmitMetrics(msgItem.Attributes, propagatedSegment.TraceId, elapsedMs);
         }
 
-        return receivedMessageResponse?.Messages?.Select(s => s.MessageId).ToArray();
+        return receivedMessageResponse.Messages.Select(s => s.MessageId).ToArray();
     }
 
     /// <summary>

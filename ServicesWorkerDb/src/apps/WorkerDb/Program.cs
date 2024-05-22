@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+global using Amazon.DynamoDBv2;
+
 using Amazon.CloudWatch.EMF.Logger;
-using Amazon.DynamoDBv2;
 using Amazon.SQS;
 using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;

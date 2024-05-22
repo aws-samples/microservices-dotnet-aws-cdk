@@ -1,18 +1,21 @@
-
-FROM mcr.microsoft.com/dotnet/aspnet:6.0.16-alpine3.17-amd64 AS base
+# Base image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 RUN addgroup --system --gid 1000 app_group \
     && adduser --system --uid 1000 --ingroup app_group --shell /bin/sh app_user
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0.408-alpine3.17-amd64 AS build
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR "/src/WorkerDb"
 COPY . .
 RUN dotnet restore "WorkerDb.csproj"
 RUN dotnet build "WorkerDb.csproj" -c Release -o /app/build
 
+# Publish stage
 FROM build AS publish
 RUN dotnet publish "WorkerDb.csproj" -c Release -o /app/publish
 
+# Final stage
 FROM base AS final
 WORKDIR /app
 RUN chown 1000:app_group /app
