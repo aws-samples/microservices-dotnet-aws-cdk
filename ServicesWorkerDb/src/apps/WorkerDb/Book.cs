@@ -18,9 +18,11 @@ public class Book
     public string Title { get; set; }
 
     [DynamoDBProperty]
-    public string Isbn { get; set; }
+    public string ISBN { get; set; }
 
     [JsonPropertyName("Authors")]
     [DynamoDBProperty("Authors")] // String Set datatype
     public List<string> BookAuthors { get; set; }
+
+    public string CoverPage { get; set; }
 }
