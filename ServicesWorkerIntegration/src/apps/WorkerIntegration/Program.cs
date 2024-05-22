@@ -1,12 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-using Amazon.CloudWatch.EMF.Logger;
-using Amazon.S3;
-using Amazon.SQS;
-using Amazon.XRay.Recorder.Core;
+global using Amazon.SQS;
+global using Amazon.S3;
+global using Amazon.CloudWatch.EMF.Logger;
+global using Amazon.XRay.Recorder.Core;
+
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
-using WorkerIntegration;
 using EMF = Amazon.CloudWatch.EMF;
+using WorkerIntegration;
+
 
 
 IHost host = Host.CreateDefaultBuilder(args)

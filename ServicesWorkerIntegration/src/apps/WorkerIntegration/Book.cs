@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: MIT-0
 using System.Text.Json.Serialization;
 
-public class Book
+namespace WorkerIntegration;
+
+public record Book
 {
     public Guid Id { get; set; }
     public string Title { get; set; }

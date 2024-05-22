@@ -1,15 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Text.Json;
-using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Core.Internal.Entities;
 using Amazon.XRay.Recorder.Core.Sampling;
 using Amazon.CloudWatch.EMF.Model;
-using Amazon.CloudWatch.EMF.Logger;
 
 namespace WorkerIntegration;
 public class Worker : BackgroundService
@@ -37,14 +33,14 @@ public class Worker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             AWSXRayRecorder.Instance.BeginSegment(MY_SERVICE_NAME);
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            _logger.LogInformation("The SQS queue's URL is {queueUrl}", queueUrl);
+            _logger.LogInformation("Worker running at: {Time}", DateTimeOffset.Now);
+            _logger.LogInformation("The SQS queue's URL is {QueueUrl}", queueUrl);
 
             try
             {
                 var messageId = await ReceiveAndDeleteMessage(_sqsClient, queueUrl);
                 var traceEntity = AWSXRayRecorder.Instance.TraceContext.GetEntity();
-                _logger.LogInformation("Message ID: {messageId}, TraceId: {TraceId}", messageId, traceEntity.TraceId);
+                _logger.LogInformation("Message ID: {MessageId}, TraceId: {TraceId}", messageId, traceEntity.TraceId);
             }
             catch (System.Exception ex)
             {
@@ -85,7 +81,7 @@ public class Worker : BackgroundService
         // Receive a single message from the queue. 
         var receiveMessageRequest = new ReceiveMessageRequest
         {
-            AttributeNames = { "All" },
+            MessageSystemAttributeNames = { "All" },
             MaxNumberOfMessages = 1,
             MessageAttributeNames = { "All" },
             QueueUrl = queueUrl,
@@ -125,7 +121,6 @@ public class Worker : BackgroundService
             var elapsedMs = watch.ElapsedMilliseconds;
 
             //Close/Submmit Segment with Propagated TraceId
-            //var propagatedSegment = AWSXRayRecorder.Instance.GetEntity();
             AWSXRayRecorder.Instance.EndSegment(DateTime.UtcNow);
             AWSXRayRecorder.Instance.Emitter.Send(propagatedSegment);
 
@@ -135,7 +130,7 @@ public class Worker : BackgroundService
             EmitMetrics(msgItem.Attributes, propagatedSegment.TraceId, elapsedMs);
         }
 
-        return receivedMessageResponse?.Messages?.Select(s => s.MessageId).ToArray();
+        return receivedMessageResponse.Messages.Select(s => s.MessageId).ToArray();
     }
 
     public async Task PerformCRUDOperations(Amazon.SQS.Model.Message message)
@@ -160,7 +155,12 @@ public class Worker : BackgroundService
         };
         _ = await _s3Client.PutObjectAsync(putRequest2);
 
-        _logger.LogInformation("Messages saved on S3 Bucket {Key} metadata seved on {Key} SQS Attr {}", putRequest1.Key, putRequest2.Key, JsonSerializer.Serialize(message.Attributes));
+        _logger.LogInformation(
+            "Messages saved on S3 Bucket {Request1Key} metadata seved on {Request2Key} SQS Attr {Attributes}",
+            putRequest1.Key,
+            putRequest2.Key,
+            JsonSerializer.Serialize(message.Attributes)
+            );
 
     }
 

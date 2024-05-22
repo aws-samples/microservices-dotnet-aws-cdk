@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-public class PaylaodMsg
+namespace WorkerIntegration;
+
+public record PaylaodMsg
 {
     public string Type { get; set; }
     public string MessageId { get; set; }
