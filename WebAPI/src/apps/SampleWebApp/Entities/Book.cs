@@ -11,7 +11,7 @@ public class Book
 
     public string Title { get; set; }
 
-    public int ISBN { get; set; }
+    public string ISBN { get; set; }
 
     [JsonPropertyName("Authors")]
     public IList<string> BookAuthors { get; set; }
