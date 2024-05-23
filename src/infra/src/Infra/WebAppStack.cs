@@ -1,18 +1,5 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-using System.Collections.Generic;
-using System.IO;
-using Amazon.CDK;
-using Amazon.CDK.AWS.EC2;
-using Amazon.CDK.AWS.Ecr.Assets;
-using Amazon.CDK.AWS.ECS;
-using Amazon.CDK.AWS.ECS.MyExtensions;
-using Amazon.CDK.AWS.ECS.Patterns;
-using Amazon.CDK.AWS.Logs;
-using Amazon.CDK.AWS.SNS;
-using Constructs;
-using Amazon.CDK.AWS.ApplicationAutoScaling;
-
 namespace InfraSampleWebApp
 {
     public class WebAppStack : Stack

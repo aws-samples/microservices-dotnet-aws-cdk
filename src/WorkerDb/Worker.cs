@@ -3,7 +3,6 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2;
 using System.Text.Json;
 using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Core.Internal.Entities;

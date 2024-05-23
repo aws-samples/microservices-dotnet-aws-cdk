@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace InfraSampleWebApp;
+﻿namespace InfraSampleWebApp;
 
 public class BaseInfraStack : Stack
 {
