@@ -8,9 +8,9 @@ This repository contains a sample implementation of Fanout Architecture using .N
 
 **Componets:**
 
-1. [.NET8 Web API Microservices](./WebAPI/README.md) - Demo Web API to simulate end-user requests.
-1. [.NET8 Worker Service 1](./ServicesWorkerDb/README.md) - Demo Worker Services that persist on DynamoDB.
-1. [.NET8 Worker Service 2](./ServicesWorkerIntegration/README.md) - Demo Worker Services that persist on S3.
+1. **.NET8 Web API Microservices** (src/SampleWebApp) - Demo Web API to simulate end-user requests.
+1. **.NET8 Worker Service 1** (src/WorkerDb) - Demo Worker Services that persist on DynamoDB.
+1. **.NET8 Worker Service 2** (src/WorkerIntegration) - Demo Worker Services that persist on S3.
 1. [SNS](https://aws.amazon.com/sns/) - Fully managed pub/sub messaging for asynchronous processing.
 1. [SQS](https://aws.amazon.com/sqs/) - Fully managed message queues for microservices.
 1. [Amazon DynamoDb Table](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) -  Fast, flexible NoSQL database service for single-digit millisecond performance at any scale.
@@ -44,7 +44,7 @@ For: [Bash]
 ./deploy.sh
 ```
 
-For: [Powershel]
+For: [PowerShell]
 
 ```PowerShell
 .\deploy.ps1
@@ -60,7 +60,7 @@ To begin the tests, copy the URL printed by the deployment script. It will look 
 {
     "Year" : 2022,
     "Title": "Demo book payload",
-    "ISBN": 12345612,
+    "ISBN": "12345612",
     "Authors": ["Author1", "Author2"],
     "CoverPage": "picture1.jpg"
 }
