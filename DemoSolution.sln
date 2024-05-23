@@ -7,17 +7,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{19D7C420-E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infra", "Infra", "{5881D2F2-2866-4262-9909-DC5BDF539DF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleWebApp", "SampleWebApp\SampleWebApp.csproj", "{C25C7F7F-6B71-45B1-BF0F-28975ED0EEB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleWebApp", "src\SampleWebApp\SampleWebApp.csproj", "{C25C7F7F-6B71-45B1-BF0F-28975ED0EEB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfraSampleWebApp", "infra\src\Infra\InfraSampleWebApp.csproj", "{D0135CD7-9A0C-4BDA-A316-8741B3E556CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfraSampleWebApp", "src\infra\src\Infra\InfraSampleWebApp.csproj", "{D0135CD7-9A0C-4BDA-A316-8741B3E556CE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerDb", "WorkerDb\WorkerDb.csproj", "{7FE3829D-3D80-4639-A665-14B7FED4DB51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerDb", "src\WorkerDb\WorkerDb.csproj", "{7FE3829D-3D80-4639-A665-14B7FED4DB51}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerIntegration", "WorkerIntegration\WorkerIntegration.csproj", "{FFE68605-33E6-44D7-A3F8-4B66DDC3AD5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerIntegration", "src\WorkerIntegration\WorkerIntegration.csproj", "{FFE68605-33E6-44D7-A3F8-4B66DDC3AD5E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{4FDEFB79-4CF9-478A-A729-5EC346445BFC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Amazon.CDK.AWS.ECS.MyExtensions", "Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj", "{EEFCD529-46DF-4490-8015-E66658EC4E33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Amazon.CDK.AWS.ECS.MyExtensions", "src\Common\Amazon.CDK.AWS.ECS.MyExtention\Amazon.CDK.AWS.ECS.MyExtensions.csproj", "{EEFCD529-46DF-4490-8015-E66658EC4E33}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
