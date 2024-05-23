@@ -12,8 +12,8 @@ cd WebAPI/src/infra/ \
 && cdk bootstrap \
 && cdk synth \
 && cdk deploy --require-approval never\
-&& export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]') \
-&& export CDK_DEPLOY_REGION=$(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoDeployRegion`].OutputValue  | [0]') \
+&& export DEMO_VPC_ID=$(aws cloudformation describe-stacks  --stack-name WebAppStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoVpcId`].OutputValue  | [0]') \
+&& export CDK_DEPLOY_REGION=$(aws cloudformation describe-stacks  --stack-name WebAppStack --output text --query 'Stacks[0].Outputs[?OutputKey==`DemoDeployRegion`].OutputValue  | [0]') \
 && cd -
 
 
@@ -51,5 +51,5 @@ echo "#############################################################"
 echo "#                        the WebAPI URL                     #"
 echo "#############################################################"
 echo -e "\n"
-echo $(aws cloudformation describe-stacks  --stack-name WebAppInfraStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`DemoServiceServiceURLEndpoint`)].OutputValue  | [0]')
+echo $(aws cloudformation describe-stacks  --stack-name WebAppStack --output text --query 'Stacks[0].Outputs[?contains(OutputKey,`DemoServiceServiceURLEndpoint`)].OutputValue  | [0]')
 echo -e "\n\n"
