@@ -1,9 +1,9 @@
 {
-    "recommendations": [
-        "fernandoescolar.vscode-solution-explorer",
-        "pkief.material-icon-theme",
-        "k--kato.docomment",
-        "jorgeserrano.vscode-csharp-snippets",
-        "ms-dotnettools.csharp"
-    ]
+  "recommendations": [
+    "fernandoescolar.vscode-solution-explorer",
+    "pkief.material-icon-theme",
+    "k--kato.docomment",
+    "jorgeserrano.vscode-csharp-snippets",
+    "ms-dotnettools.csharp"
+  ]
 }
