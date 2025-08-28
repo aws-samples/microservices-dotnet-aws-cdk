@@ -1,6 +1,6 @@
 # Sample .NET6 Worker Services with AWS CDK and AWS Fargate
 
-This repository contains a sample implementation of Fanout Architecture using .NET6 Worker Services to process messages from [Amazon Simple Notification Service (SNS)](https://aws.amazon.com/sns/) Topic and [Amazon Simple Queue Service (SQS)](https://aws.amazon.com/sqs/) Queue. Since the Worker Services would have no UI, to operate this solution, you need Observability implemented. In this repository, you can also find sample .NET Observability implementation using the combination of [AWS X-Ray](https://aws.amazon.com/xray/) and [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/). To provision this solution, you can use [AWS Cloud Development Kit (AWS CDK)](https://aws.amazon.com/cdk/) to implement your modern Infrastructure as Code, using .NET C# to provision all AWS Resources your application needs.
+This repository contains a sample implementation of Fanout Architecture using .NET8 Worker Services to process messages from [Amazon Simple Notification Service (SNS)](https://aws.amazon.com/sns/) Topic and [Amazon Simple Queue Service (SQS)](https://aws.amazon.com/sqs/) Queue. Since the Worker Services would have no UI, to operate this solution, you need Observability implemented. In this repository, you can also find sample .NET Observability implementation using the combination of [AWS X-Ray](https://aws.amazon.com/xray/) and [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/). To provision this solution, you can use [AWS Cloud Development Kit (AWS CDK)](https://aws.amazon.com/cdk/) to implement your modern Infrastructure as Code, using .NET C# to provision all AWS Resources your application needs.
 
 ## Architecture
 
@@ -8,9 +8,9 @@ This repository contains a sample implementation of Fanout Architecture using .N
 
 **Componets:**
 
-1. [.NET6 Web API Microservices](./WebAPI/README.md) - Demo Web API to simulate end-user requests.
-1. [.NET6 Worker Service 1](./ServicesWorkerDb/README.md) - Demo Worker Services that persist on DynamoDB.
-1. [.NET6 Worker Service 2](./ServicesWorkerIntegration/README.md) - Demo Worker Services that persist on S3.
+1. **.NET8 Web API Microservices** (src/SampleWebApp) - Demo Web API to simulate end-user requests.
+1. **.NET8 Worker Service 1** (src/WorkerDb) - Demo Worker Services that persist on DynamoDB.
+1. **.NET8 Worker Service 2** (src/WorkerIntegration) - Demo Worker Services that persist on S3.
 1. [SNS](https://aws.amazon.com/sns/) - Fully managed pub/sub messaging for asynchronous processing.
 1. [SQS](https://aws.amazon.com/sqs/) - Fully managed message queues for microservices.
 1. [Amazon DynamoDb Table](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) -  Fast, flexible NoSQL database service for single-digit millisecond performance at any scale.
@@ -27,7 +27,7 @@ Define cloud infrastructure using familiar programming languages [(C#)](./WebAPI
 
 Before exploring the code, please ensure you have the following tools to deploy and see the demo working.
 
-* [_.NET 6_](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+* [_.NET 8_](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * [_Git CLI_](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 * [_AWS CLI_](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 * [_AWS CDK v2_](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
@@ -44,7 +44,7 @@ For: [Bash]
 ./deploy.sh
 ```
 
-For: [Powershel]
+For: [PowerShell]
 
 ```PowerShell
 .\deploy.ps1
@@ -52,10 +52,9 @@ For: [Powershel]
 
 After completing the deployment, you can copy the printed URL like <http://WebAp-demos-XXXXXXXXXXXX-9999999999.us-west-2.elb.amazonaws.com> and jump to test
 
-
 ## Test the Solution
 
-To begin the tests, copy the URL printed by the deployment script. It will look like: “http://WebAp-demos-XXXXXXXX-99999999.us-west-2.elb.amazonaws.com”. Make a POST request to the endpoint http://YOUR_ALB_URL/api/Books using your favorite REST API Client, sending the following JSON payload. You can send multiple requests to have some sample data to visualize the Observability result from AWS CloudWatch console.
+To begin the tests, copy the URL printed by the deployment script. It will look like: “<http://WebAp-demos-XXXXXXXX-99999999.us-west-2.elb.amazonaws.com”>. Make a POST request to the endpoint http://YOUR_ALB_URL/api/Books using your favorite REST API Client, sending the following JSON payload. You can send multiple requests to have some sample data to visualize the Observability result from AWS CloudWatch console.
 
 ```json
 {
