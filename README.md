@@ -61,7 +61,7 @@ To begin the tests, copy the URL printed by the deployment script. It will look 
 {
     "Year" : 2022,
     "Title": "Demo book payload",
-    "ISBN": 12345612,
+    "ISBN": "12345612",
     "Authors": ["Author1", "Author2"],
     "CoverPage": "picture1.jpg"
 }
