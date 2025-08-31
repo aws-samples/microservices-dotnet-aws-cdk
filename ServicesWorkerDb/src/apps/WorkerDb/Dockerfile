@@ -1,10 +1,10 @@
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0.16-alpine3.17-amd64 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 WORKDIR /app
 RUN addgroup --system --gid 1000 app_group \
     && adduser --system --uid 1000 --ingroup app_group --shell /bin/sh app_user
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0.408-alpine3.17-amd64 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR "/src/WorkerDb"
 COPY . .
 RUN dotnet restore "WorkerDb.csproj"
