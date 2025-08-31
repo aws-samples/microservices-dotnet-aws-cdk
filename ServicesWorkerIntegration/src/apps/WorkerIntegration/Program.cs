@@ -16,6 +16,13 @@ IHost host = Host.CreateDefaultBuilder(args)
         builder.SetMinimumLevel(LogLevel.Information)
                .AddJsonConsole();
     })
+    .ConfigureAppConfiguration((hostingContext, config) =>
+    {
+        config.SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true)
+            .AddEnvironmentVariables();
+    })
     .ConfigureServices((hostContext, services) =>
     {
         //Register X-Ray

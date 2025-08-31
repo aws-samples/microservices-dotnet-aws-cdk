@@ -124,6 +124,11 @@ namespace InfraWorkerDb
                 Cpu = 256,
                 MemoryLimitMiB = 512,
                 Image = ContainerImage.FromDockerImageAsset(asset),
+                RuntimePlatform = new RuntimePlatform
+                {
+                    OperatingSystemFamily = OperatingSystemFamily.LINUX,
+                    CpuArchitecture = CpuArchitecture.ARM64
+                },
                 Environment = new Dictionary<string, string>()
                         {
                             {"WORKER_QUEUE_URL", workerDbQueue.QueueUrl },

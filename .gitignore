@@ -231,6 +231,9 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 .DS_Store
+
+# JetBrains IDEs
+.idea/
 # Avoid commit AWS Cred
 **/*.env
 

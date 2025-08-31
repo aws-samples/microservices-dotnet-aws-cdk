@@ -85,9 +85,9 @@ public class Worker : BackgroundService
         // Receive a single message from the queue. 
         var receiveMessageRequest = new ReceiveMessageRequest
         {
-            AttributeNames = { "All" },
+            MessageSystemAttributeNames = ["All"],
             MaxNumberOfMessages = 1,
-            MessageAttributeNames = { "All" },
+            MessageAttributeNames = ["All"],
             QueueUrl = queueUrl,
             VisibilityTimeout = 120,
             WaitTimeSeconds = 20
