@@ -120,6 +120,11 @@ namespace InfraWorkerIntegration
                 ScalingSteps = autoscalingSteps,
                 Cpu = 256,
                 MemoryLimitMiB = 512,
+                RuntimePlatform = new RuntimePlatform
+                {
+                    OperatingSystemFamily = OperatingSystemFamily.LINUX,
+                    CpuArchitecture = CpuArchitecture.ARM64
+                },
                 Cluster = cluster,
                 Image = ContainerImage.FromDockerImageAsset(asset),
                 Environment = new Dictionary<string, string>()

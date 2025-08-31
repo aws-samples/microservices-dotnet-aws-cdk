@@ -35,7 +35,7 @@ namespace InfraSampleWebApp
             var cluster = new Cluster(this, "demo-cluster", new ClusterProps
             {
                 Vpc = vpc,
-                ContainerInsights = true
+                ContainerInsightsV2 = ContainerInsights.ENABLED
             });
 
             //ECR
@@ -73,6 +73,11 @@ namespace InfraSampleWebApp
                 MemoryLimitMiB = 1024,
                 Cpu = 512,
                 DesiredCount = 3,
+                RuntimePlatform = new RuntimePlatform
+                {
+                    OperatingSystemFamily = OperatingSystemFamily.LINUX,
+                    CpuArchitecture = CpuArchitecture.ARM64
+                },
                 TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
                 {
                     // ContainerImage.FromRegistry("amazon/amazon-ecs-sample"), // 

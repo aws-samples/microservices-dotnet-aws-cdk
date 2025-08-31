@@ -85,9 +85,9 @@ public class Worker : BackgroundService
         // Receive a single message from the queue. 
         var receiveMessageRequest = new ReceiveMessageRequest
         {
-            AttributeNames = { "All" },
+            MessageSystemAttributeNames = ["All"],
             MaxNumberOfMessages = 10,
-            MessageAttributeNames = { "All" },
+            MessageAttributeNames = ["All"],
             QueueUrl = queueUrl,
             VisibilityTimeout = 120,
             WaitTimeSeconds = 20
@@ -149,7 +149,10 @@ public class Worker : BackgroundService
     /// <returns></returns>
     public async Task PerformCRUDOperations(Book book)
     {
-        DynamoDBContext context = new DynamoDBContext(_dynamoDbClient);
+        var context = new DynamoDBContextBuilder()
+            .WithDynamoDBClient(() => _dynamoDbClient)
+            .Build();
+
         await context.SaveAsync(book);
     }
 
